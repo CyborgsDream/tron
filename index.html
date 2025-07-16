@@ -1,497 +1,637 @@
-<!-- (c) 2025 Kodedok -->
- 
-
-
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberFit - Train Like an Android</title>
+    <title>Android Training Protocol v2</title>
+    <!-- Three.js CDN for 3D rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Google Fonts - Orbitron for sci-fi look -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        /* Basic reset and body styling */
         body {
-            font-family: 'Courier New', monospace;
-            background: #000;
-            color: #00ffff;
-            overflow: hidden;
-            touch-action: none;
-        }
-
-        #canvas {
-            width: 100vw;
+            margin: 0;
+            overflow: hidden; /* Hide scrollbars */
+            font-family: 'Orbitron', sans-serif;
+            background-color: #000; /* Deep space background */
+            color: #00ffff; /* Neon cyan for text */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             height: 100vh;
-            display: block;
-            background: linear-gradient(to bottom, #001122 0%, #000033 50%, #000011 100%);
+            width: 100vw;
+            position: relative;
         }
 
-        #ui {
+        /* Canvas styling to fill the screen */
+        canvas {
+            display: block;
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
-            z-index: 10;
+            z-index: 0; /* Behind UI elements */
         }
 
-        #hud {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            pointer-events: auto;
-        }
-
-        .status-bar {
-            background: rgba(0, 255, 255, 0.1);
-            border: 1px solid #00ffff;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            backdrop-filter: blur(10px);
-        }
-
-        .cyber-text {
-            color: #00ffff;
-            text-shadow: 0 0 10px #00ffff;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .rep-counter {
-            position: absolute;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 48px;
-            font-weight: bold;
-            color: #00ff00;
-            text-shadow: 0 0 20px #00ff00;
-            pointer-events: auto;
-        }
-
-        .controls {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+        /* UI Container */
+        .ui-container {
+            position: relative;
+            z-index: 1; /* Above canvas */
             display: flex;
-            gap: 20px;
-            pointer-events: auto;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent overlay */
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5); /* Neon glow */
+            border: 1px solid #00ffff;
+            max-width: 90%;
+            width: 450px; /* Slightly wider for two stats */
+            box-sizing: border-box;
         }
 
-        .cyber-button {
-            background: rgba(0, 255, 255, 0.2);
-            border: 2px solid #00ffff;
-            color: #00ffff;
-            padding: 10px 20px;
-            border-radius: 5px;
+        /* Text elements */
+        h1 {
+            font-size: 2.5em;
+            text-shadow: 0 0 10px #00ffff;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            flex: 1;
+            margin: 0 5px;
+        }
+
+        #stepCount, #clickingPointsCount {
+            font-size: 1.8em;
+            text-shadow: 0 0 8px #00ffff;
+            margin-top: 5px;
+        }
+
+        #messageDisplay {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            text-shadow: 0 0 5px #00ffff;
+            text-align: center;
+            min-height: 1.5em; /* Prevent layout shift */
+        }
+
+        /* Buttons styling */
+        .btn {
+            background: linear-gradient(45deg, #00ffff, #00aaff); /* Neon gradient */
+            color: #000; /* Dark text on neon */
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px; /* Pill shape */
+            font-size: 1.2em;
+            font-weight: bold;
             cursor: pointer;
-            font-family: inherit;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+            transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
-            transition: all 0.3s;
+            margin: 10px 0;
+            width: 80%; /* Make buttons responsive */
+            max-width: 250px;
         }
 
-        .cyber-button:hover {
-            background: rgba(0, 255, 255, 0.4);
-            box-shadow: 0 0 15px #00ffff;
+        .btn:hover {
+            background: linear-gradient(45deg, #00aaff, #00ffff);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 1);
+            transform: translateY(-3px);
         }
 
-        .cyber-button:active {
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .btn-stop {
+            background: linear-gradient(45deg, #ff00ff, #ff0077); /* Magenta gradient for stop */
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.7);
+        }
+
+        .btn-stop:hover {
+            background: linear-gradient(45deg, #ff0077, #ff00ff);
+            box-shadow: 0 0 25px rgba(255, 0, 255, 1);
+        }
+
+        /* Central Clicking Area */
+        #clickingArea {
+            width: 150px;
+            height: 150px;
+            background-color: rgba(0, 255, 255, 0.2); /* Semi-transparent neon */
+            border: 3px solid #00ffff;
+            border-radius: 50%; /* Circle shape */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+            transition: all 0.1s ease-out;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden; /* For ripple effect */
+        }
+
+        #clickingArea:hover {
+            background-color: rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 1);
+        }
+
+        #clickingArea:active {
             transform: scale(0.95);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
         }
 
-        #orientation-warning {
+        .ripple {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 0, 0, 0.9);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            display: none;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.7); /* White ripple */
+            animation: ripple-effect 0.4s linear forwards;
+            transform: scale(0);
         }
 
-        @media (max-width: 768px) {
-            .cyber-text {
-                font-size: 12px;
+        @keyframes ripple-effect {
+            to {
+                transform: scale(1.5);
+                opacity: 0;
             }
-            
-            .rep-counter {
-                font-size: 36px;
-                bottom: 80px;
+        }
+
+        /* Custom Modal Styling */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.8); /* Darker background w/ opacity */
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px); /* Frosted glass effect */
+        }
+        .modal-content {
+            background-color: #1a1a1a; /* Dark modal background */
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.8); /* Stronger neon glow */
+            max-width: 90%;
+            width: 450px;
+            text-align: center;
+            position: relative;
+            border: 2px solid #00ffff;
+            color: #00ffff;
+        }
+        .close-button {
+            color: #00ffff;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 36px;
+            font-weight: bold;
+            cursor: pointer;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+            text-shadow: 0 0 15px #fff;
+        }
+        .modal-content h3 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        .modal-content p {
+            font-size: 1.1em;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+        .modal-content .btn {
+            margin-top: 15px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8em;
             }
-            
-            .cyber-button {
-                padding: 8px 16px;
-                font-size: 12px;
+            .stat-item {
+                font-size: 0.9em;
+                padding: 8px;
+            }
+            #stepCount, #clickingPointsCount {
+                font-size: 1.4em;
+            }
+            #messageDisplay {
+                font-size: 1em;
+            }
+            .btn {
+                padding: 12px 25px;
+                font-size: 1em;
+            }
+            .ui-container {
+                padding: 15px;
+            }
+            #clickingArea {
+                width: 120px;
+                height: 120px;
+            }
+            .modal-content {
+                padding: 20px;
+            }
+            .modal-content h3 {
+                font-size: 1.6em;
+            }
+            .modal-content p {
+                font-size: 1em;
             }
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
-    
-    <div id="ui">
-        <div id="hud">
-            <div class="status-bar">
-                <div class="cyber-text">CyberFit Training Protocol</div>
-                <div class="cyber-text">Horizon Lock: <span id="horizon-status">CALIBRATING</span></div>
-                <div class="cyber-text">Orientation: <span id="orientation-data">0°, 0°, 0°</span></div>
+
+    <!-- Three.js Canvas -->
+    <canvas id="trainingCanvas"></canvas>
+
+    <!-- UI Container -->
+    <div class="ui-container">
+        <h1>ANDROID TRAINING PROTOCOL</h1>
+
+        <div class="stats-container">
+            <div class="stat-item">
+                <div>STEPS</div>
+                <div id="stepCount">0</div>
             </div>
-            <div class="status-bar">
-                <div class="cyber-text">Training Mode: High-Rep Kinetic</div>
-                <div class="cyber-text">Target: 1,000,000 reps</div>
-                <div class="cyber-text">Session: <span id="session-time">00:00</span></div>
+            <div class="stat-item">
+                <div>CLICKING POINTS</div>
+                <div id="clickingPointsCount">0</div>
             </div>
         </div>
-        
-        <div class="rep-counter" id="rep-counter">0</div>
-        
-        <div class="controls">
-            <button class="cyber-button" onclick="startTraining()">Start Training</button>
-            <button class="cyber-button" onclick="resetSession()">Reset</button>
-            <button class="cyber-button" onclick="toggleGrid()">Toggle Grid</button>
-        </div>
+
+        <p id="messageDisplay">Tap START to begin your training.</p>
+
+        <div id="clickingArea"></div>
+
+        <button id="startButton" class="btn">START TRAINING</button>
+        <button id="stopButton" class="btn btn-stop" style="display: none;">STOP TRAINING</button>
+        <button id="permissionButton" class="btn" style="display: none;">GRANT SENSOR PERMISSION</button>
     </div>
 
-    <div id="orientation-warning">
-        <h3>Orientation Access Required</h3>
-        <p>Please allow device orientation access for horizon tracking</p>
-        <button onclick="requestOrientation()">Grant Permission</button>
+    <!-- Custom Modal Structure -->
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeModalBtn">&times;</span>
+            <h3 id="modalTitle">Welcome, Trainee!</h3>
+            <p id="modalMessage">
+                Prepare for intensive low-impact, high-repetition training. Hold your phone firmly.
+                The 3D grid will align with the real-world horizon. Perform quick, precise "flick"
+                or "punch-like" movements with your phone to register **Steps**.
+                Tap the central glowing circle for **Clicking Points**.
+                Ensure your device orientation sensors are enabled.
+            </p>
+            <button id="modalOkBtn" class="btn">UNDERSTOOD</button>
+        </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        
-        let deviceOrientation = { alpha: 0, beta: 0, gamma: 0 };
-        let horizonOffset = 0;
-        let isTraining = false;
-        let repCount = 0;
-        let sessionStartTime = null;
-        let animationId;
-        let gridEnabled = true;
-        
-        // Canvas setup
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-        
-        // Device orientation handling
-        function handleOrientation(event) {
-            deviceOrientation = {
-                alpha: event.alpha || 0,
-                beta: event.beta || 0,
-                gamma: event.gamma || 0
-            };
-            
-            updateOrientationDisplay();
-            document.getElementById('horizon-status').textContent = 'LOCKED';
-        }
-        
-        function updateOrientationDisplay() {
-            const orientationData = document.getElementById('orientation-data');
-            orientationData.textContent = 
-                `${deviceOrientation.alpha.toFixed(0)}°, ${deviceOrientation.beta.toFixed(0)}°, ${deviceOrientation.gamma.toFixed(0)}°`;
-        }
-        
-        // Request device orientation permission
-        async function requestOrientation() {
-            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                try {
-                    const permission = await DeviceOrientationEvent.requestPermission();
-                    if (permission === 'granted') {
-                        window.addEventListener('deviceorientation', handleOrientation);
-                        document.getElementById('orientation-warning').style.display = 'none';
-                    }
-                } catch (error) {
-                    console.error('Error requesting orientation permission:', error);
-                }
-            } else {
-                // For non-iOS devices or older browsers
-                window.addEventListener('deviceorientation', handleOrientation);
-                document.getElementById('orientation-warning').style.display = 'none';
-            }
-        }
-        
-        // Auto-request orientation on load
-        window.addEventListener('load', () => {
-            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                // iOS 13+ requires permission
-                document.getElementById('orientation-warning').style.display = 'block';
-            } else {
-                requestOrientation();
-            }
-        });
-        
-        // 3D Grid rendering
-        function drawGrid() {
-            if (!gridEnabled) return;
-            
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const roll = deviceOrientation.gamma * Math.PI / 180;
-            const pitch = deviceOrientation.beta * Math.PI / 180;
-            
-            ctx.save();
-            ctx.translate(centerX, centerY);
-            ctx.rotate(-roll); // Counter-rotate to maintain horizon
-            
-            // Grid parameters
-            const gridSize = 50;
-            const gridExtent = 20;
-            const perspectiveScale = 0.5;
-            
-            // Draw horizontal grid lines (perspective)
-            ctx.strokeStyle = '#00ffff';
-            ctx.lineWidth = 1;
-            ctx.globalAlpha = 0.6;
-            
-            for (let i = -gridExtent; i <= gridExtent; i++) {
-                const y = i * gridSize;
-                const perspectiveY = y * perspectiveScale + pitch * 100;
-                const alpha = Math.max(0.1, 0.8 - Math.abs(i) * 0.05);
-                
-                ctx.globalAlpha = alpha;
-                ctx.beginPath();
-                ctx.moveTo(-gridExtent * gridSize, perspectiveY);
-                ctx.lineTo(gridExtent * gridSize, perspectiveY);
-                ctx.stroke();
-            }
-            
-            // Draw vertical grid lines
-            for (let i = -gridExtent; i <= gridExtent; i++) {
-                const x = i * gridSize;
-                const alpha = Math.max(0.1, 0.8 - Math.abs(i) * 0.05);
-                
-                ctx.globalAlpha = alpha;
-                ctx.beginPath();
-                ctx.moveTo(x, -gridExtent * gridSize * perspectiveScale);
-                ctx.lineTo(x, gridExtent * gridSize * perspectiveScale);
-                ctx.stroke();
-            }
-            
-            // Draw horizon line
-            ctx.globalAlpha = 1;
-            ctx.strokeStyle = '#00ff00';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(-canvas.width, pitch * 100);
-            ctx.lineTo(canvas.width, pitch * 100);
-            ctx.stroke();
-            
-            // Draw vertical columns (3D effect)
-            ctx.strokeStyle = '#ff00ff';
-            ctx.lineWidth = 1;
-            ctx.globalAlpha = 0.4;
-            
-            for (let i = -5; i <= 5; i++) {
-                for (let j = -5; j <= 5; j++) {
-                    const x = i * gridSize * 2;
-                    const z = j * gridSize * 2;
-                    const y = z * perspectiveScale + pitch * 50;
-                    
-                    if (Math.abs(i) + Math.abs(j) < 8) {
-                        ctx.beginPath();
-                        ctx.moveTo(x, y);
-                        ctx.lineTo(x, y - 100);
-                        ctx.stroke();
-                    }
+        // --- Three.js Setup ---
+        let scene, camera, renderer, gridHelper, verticalLines, stars;
+        let deviceOrientationQuaternion = new THREE.Quaternion();
+
+        function init3DScene() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000000); // Black background for deep space
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 1.5, 5); // Slightly above ground, looking forward
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('trainingCanvas'), antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040); // Soft white light
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0x00ffff, 1, 100); // Neon cyan light
+            pointLight.position.set(0, 5, 0);
+            scene.add(pointLight);
+
+            // Grid (the "surface" - floor)
+            const gridSize = 100;
+            const divisions = 100;
+            gridHelper = new THREE.GridHelper(gridSize, divisions, 0x00ffff, 0x008888); // Neon cyan grid
+            gridHelper.material.opacity = 0.4;
+            gridHelper.material.transparent = true;
+            scene.add(gridHelper);
+
+            // Vertical Columns (Tron-like)
+            verticalLines = new THREE.Group();
+            const material = new THREE.LineBasicMaterial({ color: 0x00ffff, linewidth: 2 }); // Neon cyan lines
+            const geometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(0, 0, 0),
+                new THREE.Vector3(0, 15, 0) // Lines extending upwards
+            ]);
+
+            const numColumns = 30; // More columns for denser feel
+            const columnSpacing = 7;
+            for (let i = 0; i < numColumns; i++) {
+                for (let j = 0; j < numColumns; j++) {
+                    const line = new THREE.Line(geometry, material);
+                    line.position.set(
+                        (i - numColumns / 2) * columnSpacing,
+                        0,
+                        (j - numColumns / 2) * columnSpacing
+                    );
+                    verticalLines.add(line);
                 }
             }
-            
-            ctx.restore();
+            scene.add(verticalLines);
+
+            // Starfield (for the "sky")
+            const starGeometry = new THREE.BufferGeometry();
+            const starVertices = [];
+            for (let i = 0; i < 1000; i++) {
+                const x = THREE.MathUtils.randFloatSpread(200);
+                const y = THREE.MathUtils.randFloatSpread(200);
+                const z = THREE.MathUtils.randFloatSpread(200);
+                starVertices.push(x, y, z);
+            }
+            starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+            const starMaterial = new THREE.PointsMaterial({ color: 0x888888, size: 0.2 }); // Subtle grey stars
+            stars = new THREE.Points(starGeometry, starMaterial);
+            scene.add(stars);
+
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize, false);
         }
-        
-        // Animation loop
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
         function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw starfield background
-            drawStarfield();
-            
-            // Draw 3D grid
-            drawGrid();
-            
-            // Draw training effects
-            if (isTraining) {
-                drawTrainingEffects();
+            requestAnimationFrame(animate);
+            // Rotate stars slightly for dynamic background
+            if (stars) {
+                stars.rotation.y += 0.0005;
+                stars.rotation.x += 0.0002;
             }
-            
-            animationId = requestAnimationFrame(animate);
+            renderer.render(scene, camera);
         }
-        
-        function drawStarfield() {
-            ctx.fillStyle = '#ffffff';
-            ctx.globalAlpha = 0.8;
-            
-            for (let i = 0; i < 100; i++) {
-                const x = (i * 123 + deviceOrientation.alpha * 2) % canvas.width;
-                const y = (i * 456 + deviceOrientation.beta * 2) % canvas.height;
-                const size = Math.random() * 2;
-                
-                ctx.beginPath();
-                ctx.arc(x, y, size, 0, Math.PI * 2);
-                ctx.fill();
+
+        // --- Device Orientation & Step Logic ---
+        const stepCountDisplay = document.getElementById('stepCount');
+        const clickingPointsCountDisplay = document.getElementById('clickingPointsCount');
+        const messageDisplay = document.getElementById('messageDisplay');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const permissionButton = document.getElementById('permissionButton');
+        const clickingArea = document.getElementById('clickingArea');
+
+        let trainingActive = false;
+        let steps = 0;
+        let clickingPoints = 0;
+
+        // Step detection variables (Peak/Trough method for beta tilt)
+        let currentPeakBeta = -Infinity;
+        let currentTroughBeta = Infinity;
+        let stepDirection = 'up'; // 'up' (looking for peak), 'down' (looking for trough)
+        const MIN_STEP_RANGE = 15; // Minimum degrees difference between peak and trough for a step
+        let lastStepTime = 0;
+        const STEP_COOLDOWN = 200; // Milliseconds to prevent rapid double-counting
+
+        // Modal elements
+        const infoModal = document.getElementById('infoModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalOkBtn = document.getElementById('modalOkBtn');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+
+        function showModal(title, message) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            infoModal.style.display = 'flex';
+        }
+
+        function hideModal() {
+            infoModal.style.display = 'none';
+        }
+
+        // Event listeners for modal
+        closeModalBtn.addEventListener('click', hideModal);
+        modalOkBtn.addEventListener('click', hideModal);
+        window.addEventListener('click', (event) => {
+            if (event.target === infoModal) {
+                hideModal();
             }
-            
-            ctx.globalAlpha = 1;
-        }
-        
-        function drawTrainingEffects() {
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const time = Date.now() / 1000;
-            
-            // Pulsing energy rings
-            ctx.strokeStyle = '#00ff00';
-            ctx.lineWidth = 3;
-            ctx.globalAlpha = 0.7;
-            
-            for (let i = 0; i < 3; i++) {
-                const radius = 50 + Math.sin(time * 2 + i) * 30;
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-                ctx.stroke();
+        });
+
+        // Function to handle device orientation data
+        function handleOrientation(event) {
+            // event.alpha: Z-axis (compass heading)
+            // event.beta: X-axis (front-to-back tilt, -180 to 180)
+            // event.gamma: Y-axis (left-to-right tilt, -90 to 90)
+
+            // Convert degrees to radians for Three.js
+            const degToRad = Math.PI / 180;
+            const alpha = event.alpha ? event.alpha * degToRad : 0;
+            const beta = event.beta ? event.beta * degToRad : 0;
+            const gamma = event.gamma ? event.gamma * degToRad : 0;
+
+            // Apply device orientation to the camera
+            // YXZ order is common for device orientation, negating alpha to match typical conventions
+            // This makes the camera rotate with the device, keeping the 3D world fixed relative to the real world.
+            const euler = new THREE.Euler();
+            euler.set(beta, gamma, -alpha, 'YXZ');
+            camera.quaternion.setFromEuler(euler);
+
+            // --- Step Detection ---
+            if (trainingActive) {
+                const currentBeta = event.beta; // Use degrees for easier thresholding
+                const currentTime = Date.now();
+
+                if (stepDirection === 'up') {
+                    // Looking for a peak (forward tilt)
+                    if (currentBeta > currentPeakBeta) {
+                        currentPeakBeta = currentBeta;
+                    } else if (currentBeta < currentPeakBeta - 5 && currentPeakBeta > -Infinity) {
+                        // Beta started decreasing after a peak, potential peak found
+                        stepDirection = 'down';
+                        currentTroughBeta = currentBeta; // Start looking for trough from current beta
+                    }
+                } else if (stepDirection === 'down') {
+                    // Looking for a trough (backward tilt/return)
+                    if (currentBeta < currentTroughBeta) {
+                        currentTroughBeta = currentBeta;
+                    } else if (currentBeta > currentTroughBeta + 5 && currentTroughBeta < Infinity) {
+                        // Beta started increasing after a trough, potential trough found
+                        if (currentPeakBeta - currentTroughBeta >= MIN_STEP_RANGE && (currentTime - lastStepTime > STEP_COOLDOWN)) {
+                            steps++;
+                            stepCountDisplay.textContent = `${steps}`;
+                            messageDisplay.textContent = `Step ${steps} completed! Engage!`;
+                            if (navigator.vibrate) {
+                                navigator.vibrate(50); // Vibrate for 50ms for feedback
+                            }
+                            lastStepTime = currentTime;
+                        } else if (currentTime - lastStepTime <= STEP_COOLDOWN) {
+                             messageDisplay.textContent = `Too fast! Wait for next sequence.`;
+                        } else {
+                            messageDisplay.textContent = `Movement too small. Range: ${(currentPeakBeta - currentTroughBeta).toFixed(1)}°`;
+                        }
+                        // Reset for next step
+                        stepDirection = 'up';
+                        currentPeakBeta = currentBeta; // Start looking for new peak from current beta
+                        currentTroughBeta = Infinity;
+                    }
+                }
             }
-            
-            ctx.globalAlpha = 1;
         }
-        
-        // Training functions
-        function startTraining() {
-            isTraining = !isTraining;
-            const button = event.target;
-            
-            if (isTraining) {
-                button.textContent = 'Stop Training';
-                sessionStartTime = Date.now();
-                startRepDetection();
+
+        // --- Permission Handling for Device Orientation ---
+        function requestDeviceOrientationPermission() {
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('deviceorientation', handleOrientation);
+                            permissionButton.style.display = 'none';
+                            messageDisplay.textContent = 'Sensor access granted. Ready to train!';
+                            startButton.style.display = 'block'; // Show start button
+                        } else {
+                            messageDisplay.textContent = 'Permission denied. Cannot track movement.';
+                            showModal('Permission Denied', 'Device orientation sensor access is required for this app to function. Please grant permission to start training.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error requesting device orientation permission:', error);
+                        messageDisplay.textContent = 'Error requesting sensor permission.';
+                        showModal('Error', 'An error occurred while requesting sensor permission. Please try again or check your device settings.');
+                    });
             } else {
-                button.textContent = 'Start Training';
-                stopRepDetection();
+                // For non-iOS 13+ devices, permission is not explicitly needed
+                window.addEventListener('deviceorientation', handleOrientation);
+                permissionButton.style.display = 'none'; // Hide button if not needed
+                messageDisplay.textContent = 'Sensors active. Ready to train!';
+                startButton.style.display = 'block'; // Show start button
             }
         }
-        
-        function resetSession() {
-            repCount = 0;
-            updateRepCounter();
-            sessionStartTime = null;
-            updateSessionTime();
-        }
-        
-        function toggleGrid() {
-            gridEnabled = !gridEnabled;
-        }
-        
-        function updateRepCounter() {
-            document.getElementById('rep-counter').textContent = repCount.toLocaleString();
-        }
-        
-        function updateSessionTime() {
-            if (sessionStartTime) {
-                const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
-                const minutes = Math.floor(elapsed / 60);
-                const seconds = elapsed % 60;
-                document.getElementById('session-time').textContent = 
-                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }
-        }
-        
-        // Rep detection simulation (basic accelerometer-like)
-        let lastMotion = 0;
-        let motionThreshold = 15;
-        
-        function startRepDetection() {
-            function detectRep() {
-                if (!isTraining) return;
-                
-                const currentMotion = Math.abs(deviceOrientation.gamma) + Math.abs(deviceOrientation.beta);
-                
-                if (currentMotion > motionThreshold && lastMotion < motionThreshold) {
-                    repCount++;
-                    updateRepCounter();
-                    
-                    // Visual feedback
-                    const repCounter = document.getElementById('rep-counter');
-                    repCounter.style.color = '#ffffff';
-                    repCounter.style.transform = 'translateX(-50%) scale(1.2)';
-                    
-                    setTimeout(() => {
-                        repCounter.style.color = '#00ff00';
-                        repCounter.style.transform = 'translateX(-50%) scale(1)';
-                    }, 100);
+
+        // --- Clicking Points Logic ---
+        clickingArea.addEventListener('click', (event) => {
+            if (trainingActive) {
+                clickingPoints++;
+                clickingPointsCountDisplay.textContent = `${clickingPoints}`;
+                messageDisplay.textContent = `Clicking Point! Total: ${clickingPoints}`;
+
+                // Ripple effect
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+                const rect = clickingArea.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                ripple.style.width = ripple.style.height = `${size}px`;
+                ripple.style.left = `${event.clientX - rect.left - size / 2}px`;
+                ripple.style.top = `${event.clientY - rect.top - size / 2}px`;
+                clickingArea.appendChild(ripple);
+                ripple.addEventListener('animationend', () => {
+                    ripple.remove();
+                });
+
+                if (navigator.vibrate) {
+                    navigator.vibrate(20); // Shorter vibrate for click
                 }
-                
-                lastMotion = currentMotion;
-                
-                if (isTraining) {
-                    requestAnimationFrame(detectRep);
-                }
-            }
-            
-            detectRep();
-        }
-        
-        function stopRepDetection() {
-            // Detection stops when isTraining becomes false
-        }
-        
-        // Update session time periodically
-        setInterval(updateSessionTime, 1000);
-        
-        // Touch controls for mobile
-        let touchStartY = 0;
-        
-        canvas.addEventListener('touchstart', (e) => {
-            touchStartY = e.touches[0].clientY;
-        });
-        
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            const touchY = e.touches[0].clientY;
-            const deltaY = touchY - touchStartY;
-            
-            if (isTraining && Math.abs(deltaY) > 50) {
-                // Simulate rep from touch gesture
-                repCount++;
-                updateRepCounter();
-                touchStartY = touchY;
-                
-                // Visual feedback
-                const repCounter = document.getElementById('rep-counter');
-                repCounter.style.color = '#ffffff';
-                repCounter.style.transform = 'translateX(-50%) scale(1.2)';
-                
-                setTimeout(() => {
-                    repCounter.style.color = '#00ff00';
-                    repCounter.style.transform = 'translateX(-50%) scale(1)';
-                }, 100);
+            } else {
+                messageDisplay.textContent = 'Tap START to activate clicking points.';
             }
         });
-        
-        // Start animation
-        animate();
+
+
+        // --- Training Control ---
+        startButton.addEventListener('click', () => {
+            if (!trainingActive) {
+                steps = 0;
+                clickingPoints = 0;
+                stepCountDisplay.textContent = `${steps}`;
+                clickingPointsCountDisplay.textContent = `${clickingPoints}`;
+                trainingActive = true;
+                startButton.style.display = 'none';
+                stopButton.style.display = 'block';
+                messageDisplay.textContent = 'TRAINING IN PROGRESS...';
+                clickingArea.style.display = 'flex'; // Show clicking area
+                // Reset step detection state
+                currentPeakBeta = -Infinity;
+                currentTroughBeta = Infinity;
+                stepDirection = 'up';
+                lastStepTime = 0;
+            }
+        });
+
+        stopButton.addEventListener('click', () => {
+            if (trainingActive) {
+                trainingActive = false;
+                startButton.style.display = 'block';
+                stopButton.style.display = 'none';
+                clickingArea.style.display = 'none'; // Hide clicking area
+                messageDisplay.textContent = `TRAINING COMPLETE! Steps: ${steps}, Clicks: ${clickingPoints}`;
+            }
+        });
+
+        // --- Initialize on Window Load ---
+        window.onload = function() {
+            init3DScene();
+            animate(); // Start the 3D animation loop immediately
+
+            // Hide clicking area initially
+            clickingArea.style.display = 'none';
+
+            // Check if permission is needed for device orientation
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                permissionButton.style.display = 'block'; // Show permission button if required
+                startButton.style.display = 'none'; // Hide start button until permission is granted
+                messageDisplay.textContent = 'Tap "GRANT SENSOR PERMISSION" to begin.';
+            } else {
+                // No explicit permission needed, just start listening
+                window.addEventListener('deviceorientation', handleOrientation);
+                startButton.style.display = 'block'; // Show start button
+                messageDisplay.textContent = 'Sensors active. Ready to train!';
+            }
+
+            permissionButton.addEventListener('click', requestDeviceOrientationPermission);
+
+            // Show initial welcome message in modal
+            showModal('Welcome, Trainee!', 'Prepare for intensive low-impact, high-repetition training. Hold your phone firmly. The 3D grid will align with the real-world horizon. Perform quick, precise "flick" or "punch-like" movements with your phone to register **Steps**. Tap the central glowing circle for **Clicking Points**. Ensure your device orientation sensors are enabled.');
+        };
     </script>
 </body>
 </html>
