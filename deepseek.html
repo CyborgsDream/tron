@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NeoGrid Fitness - Precision Training</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            overflow: hidden;
+            background: #000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #0ff;
+            height: 100vh;
+            perspective: 1200px;
+            perspective-origin: center;
+        }
+        
+        #app {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        #scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+        }
+        
+        .grid-line {
+            position: absolute;
+            background: rgba(0, 255, 255, 0.7);
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.9);
+            transform-origin: 0 0;
+        }
+        
+        .horizontal-line {
+            height: 1px;
+        }
+        
+        .vertical-line {
+            width: 1px;
+        }
+        
+        #ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            background: radial-gradient(circle, transparent 60%, rgba(0, 20, 40, 0.7) 100%);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+            letter-spacing: 2px;
+        }
+        
+        .status {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .status-item {
+            background: rgba(0, 50, 80, 0.4);
+            border: 1px solid #0ff;
+            border-radius: 12px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+        
+        .training-data {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-top: -100px;
+        }
+        
+        .reps-counter {
+            font-size: 5rem;
+            font-weight: 700;
+            text-shadow: 0 0 15px #0ff, 0 0 30px #0ff;
+            color: #fff;
+        }
+        
+        .exercise-name {
+            font-size: 1.8rem;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #0ff;
+            text-shadow: 0 0 10px #0ff;
+        }
+        
+        .control-panel {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            width: 100%;
+            padding-bottom: 40px;
+        }
+        
+        .btn {
+            pointer-events: auto;
+            background: linear-gradient(to bottom, #006688, #003355);
+            border: 2px solid #0ff;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            transition: all 0.2s;
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 5px rgba(0, 255, 255, 0.8);
+            background: linear-gradient(to bottom, #0088aa, #004466);
+        }
+        
+        .btn-primary {
+            width: 100px;
+            height: 100px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .instructions {
+            position: absolute;
+            bottom: 130px;
+            width: 100%;
+            text-align: center;
+            font-size: 1.1rem;
+            color: #8af;
+            text-shadow: 0 0 5px #48f;
+            padding: 0 20px;
+            animation: pulse 2s infinite;
+        }
+        
+        #calibration-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 10, 20, 0.95);
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        .calibration-title {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #0ff;
+        }
+        
+        .calibration-text {
+            font-size: 1.2rem;
+            max-width: 80%;
+            text-align: center;
+            line-height: 1.6;
+            color: #8af;
+        }
+        
+        .calibration-btn {
+            pointer-events: auto;
+            background: linear-gradient(to bottom, #0088aa, #004466);
+            border: 2px solid #0ff;
+            border-radius: 30px;
+            padding: 15px 40px;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+            margin-top: 20px;
+        }
+        
+        .sensor-data {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 30, 60, 0.6);
+            border: 1px solid #0ff;
+            border-radius: 10px;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+        
+        @media (max-width: 480px) {
+            .logo { font-size: 1.4rem; }
+            .status-item { padding: 6px 10px; font-size: 0.8rem; }
+            .reps-counter { font-size: 4rem; }
+            .exercise-name { font-size: 1.4rem; }
+            .btn { width: 70px; height: 70px; }
+            .btn-primary { width: 85px; height: 85px; }
+            .instructions { font-size: 1rem; bottom: 120px; }
+            .calibration-title { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="scene"></div>
+        
+        <div id="ui-overlay">
+            <div class="header">
+                <div class="logo">NEOGRID FITNESS</div>
+                <div class="status">
+                    <div class="status-item">BAT: 87%</div>
+                    <div class="status-item">HR: 112</div>
+                    <div class="status-item">CAL: 284</div>
+                </div>
+            </div>
+            
+            <div class="training-data">
+                <div class="reps-counter">1,248</div>
+                <div class="exercise-name">Precision Strikes</div>
+            </div>
+            
+            <div class="instructions">Hold device steady and perform controlled movements in the grid</div>
+            
+            <div class="control-panel">
+                <div class="btn" id="reset-btn">Reset</div>
+                <div class="btn btn-primary" id="start-btn">Start</div>
+                <div class="btn" id="mode-btn">Mode</div>
+            </div>
+            
+            <div class="sensor-data" id="sensor-data">Calibrating...</div>
+        </div>
+        
+        <div id="calibration-overlay">
+            <h1 class="calibration-title">NeoGrid Fitness Calibration</h1>
+            <p class="calibration-text">For precise grid alignment, hold your device in your preferred training position and press Calibrate.</p>
+            <p class="calibration-text">The 3D grid will lock to your current horizon and remain fixed to the real world.</p>
+            <div class="calibration-btn" id="calibrate-btn">Calibrate</div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize variables
+        let reps = 0;
+        let isTraining = false;
+        let startTime = null;
+        let animationFrame = null;
+        let lastUpdate = 0;
+        let isCalibrated = false;
+        let initialAlpha = 0;
+        let initialBeta = 0;
+        let initialGamma = 0;
+        let calibrationMatrix = new DOMMatrix();
+        
+        // DOM elements
+        const scene = document.getElementById('scene');
+        const repsCounter = document.querySelector('.reps-counter');
+        const startBtn = document.getElementById('start-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const modeBtn = document.getElementById('mode-btn');
+        const calibrateBtn = document.getElementById('calibrate-btn');
+        const calibrationOverlay = document.getElementById('calibration-overlay');
+        const exerciseName = document.querySelector('.exercise-name');
+        const sensorData = document.getElementById('sensor-data');
+        
+        // Exercises data
+        const exercises = [
+            { name: "Precision Strikes", color: "#0ff" },
+            { name: "Neural Calibration", color: "#f0f" },
+            { name: "Synaptic Response", color: "#0f0" },
+            { name: "Kinetic Flow", color: "#ff0" }
+        ];
+        let currentExercise = 0;
+        
+        // Create the 3D grid
+        function createGrid() {
+            scene.innerHTML = '';
+            
+            // Grid parameters
+            const gridSize = 20;
+            const spacing = 50;
+            const depth = 1000;
+            const height = 400;
+            
+            // Create ground grid (XY plane at z=0)
+            for (let i = -gridSize; i <= gridSize; i++) {
+                // Lines along X axis
+                const xLine = document.createElement('div');
+                xLine.className = 'grid-line horizontal-line';
+                xLine.style.width = `${gridSize * 2 * spacing}px`;
+                xLine.style.transform = `translate3d(${-gridSize * spacing}px, ${i * spacing}px, 0)`;
+                scene.appendChild(xLine);
+                
+                // Lines along Y axis
+                const yLine = document.createElement('div');
+                yLine.className = 'grid-line vertical-line';
+                yLine.style.height = `${gridSize * 2 * spacing}px`;
+                yLine.style.transform = `translate3d(${i * spacing}px, ${-gridSize * spacing}px, 0)`;
+                scene.appendChild(yLine);
+            }
+            
+            // Create vertical columns
+            for (let i = -gridSize; i <= gridSize; i++) {
+                for (let j = -gridSize; j <= gridSize; j++) {
+                    if (i % 2 === 0 || j % 2 === 0) {
+                        const column = document.createElement('div');
+                        column.className = 'grid-line vertical-line';
+                        column.style.height = `${height}px`;
+                        column.style.transform = `translate3d(${i * spacing}px, ${j * spacing}px, 0) rotateX(90deg)`;
+                        column.style.opacity = 0.4;
+                        scene.appendChild(column);
+                    }
+                }
+            }
+            
+            // Create depth planes
+            for (let z = -depth; z <= 0; z += 200) {
+                const depthPlane = document.createElement('div');
+                depthPlane.className = 'grid-line';
+                depthPlane.style.width = `${gridSize * 2 * spacing}px`;
+                depthPlane.style.height = `${gridSize * 2 * spacing}px`;
+                depthPlane.style.border = '1px solid rgba(0, 255, 255, 0.3)';
+                depthPlane.style.transform = `translate3d(${-gridSize * spacing}px, ${-gridSize * spacing}px, ${z}px)`;
+                depthPlane.style.boxShadow = '0 0 15px rgba(0, 255, 255, 0.2)';
+                scene.appendChild(depthPlane);
+            }
+            
+            // Create coordinate indicators
+            createIndicator(100, 0, 0, '#f00', 'X');
+            createIndicator(0, 100, 0, '#0f0', 'Y');
+            createIndicator(0, 0, 100, '#00f', 'Z');
+        }
+        
+        // Create coordinate indicator
+        function createIndicator(x, y, z, color, label) {
+            const indicator = document.createElement('div');
+            indicator.style.position = 'absolute';
+            indicator.style.width = '20px';
+            indicator.style.height = '20px';
+            indicator.style.background = color;
+            indicator.style.borderRadius = '50%';
+            indicator.style.transform = `translate3d(${x}px, ${y}px, ${z}px)`;
+            indicator.style.boxShadow = `0 0 15px ${color}`;
+            
+            const labelEl = document.createElement('div');
+            labelEl.textContent = label;
+            labelEl.style.position = 'absolute';
+            labelEl.style.color = color;
+            labelEl.style.fontWeight = 'bold';
+            labelEl.style.textShadow = `0 0 5px ${color}`;
+            labelEl.style.left = '25px';
+            
+            indicator.appendChild(labelEl);
+            scene.appendChild(indicator);
+        }
+        
+        // Handle device orientation
+        function handleOrientation(event) {
+            if (!isCalibrated || !isTraining) return;
+            
+            const alpha = event.alpha;  // Z rotation (compass)
+            const beta = event.beta;    // X rotation (front-to-back)
+            const gamma = event.gamma;  // Y rotation (left-to-right)
+            
+            // Show sensor data
+            sensorData.innerHTML = `
+                α: ${alpha ? alpha.toFixed(1) : 'N/A'}°<br>
+                β: ${beta ? beta.toFixed(1) : 'N/A'}°<br>
+                γ: ${gamma ? gamma.toFixed(1) : 'N/A'}°
+            `;
+            
+            // Apply calibration
+            const calibratedAlpha = alpha - initialAlpha;
+            const calibratedBeta = beta - initialBeta;
+            const calibratedGamma = gamma - initialGamma;
+            
+            // Create rotation matrix
+            const rotateZ = new DOMMatrix().rotate(0, 0, calibratedAlpha);
+            const rotateX = new DOMMatrix().rotate(calibratedBeta, 0, 0);
+            const rotateY = new DOMMatrix().rotate(0, calibratedGamma, 0);
+            
+            // Combine rotations (order matters: Z, X, Y)
+            let transformMatrix = new DOMMatrix();
+            transformMatrix = transformMatrix.multiply(rotateZ);
+            transformMatrix = transformMatrix.multiply(rotateX);
+            transformMatrix = transformMatrix.multiply(rotateY);
+            
+            // Apply the transformation to the scene
+            scene.style.transform = `matrix3d(${Array.from(transformMatrix.toFloat32Array()).join(',')})`;
+        }
+        
+        // Calibrate device orientation
+        function calibrateOrientation(event) {
+            initialAlpha = event.alpha;
+            initialBeta = event.beta;
+            initialGamma = event.gamma;
+            
+            // Create calibration matrix
+            calibrationMatrix = new DOMMatrix()
+                .rotate(0, 0, -initialAlpha)
+                .rotate(-initialBeta, 0, 0)
+                .rotate(0, -initialGamma, 0);
+            
+            isCalibrated = true;
+            calibrationOverlay.style.display = 'none';
+            
+            // Show success message
+            sensorData.innerHTML = 'Calibration Complete!';
+            setTimeout(() => {
+                if (isTraining) {
+                    sensorData.innerHTML = 'Tracking Active';
+                } else {
+                    sensorData.innerHTML = 'Ready to Train';
+                }
+            }, 2000);
+        }
+        
+        // Start training session
+        function startTraining() {
+            if (isTraining) {
+                pauseTraining();
+                return;
+            }
+            
+            if (!isCalibrated) {
+                sensorData.innerHTML = 'Calibration Required';
+                calibrationOverlay.style.display = 'flex';
+                return;
+            }
+            
+            isTraining = true;
+            startTime = Date.now();
+            startBtn.textContent = 'Pause';
+            sensorData.innerHTML = 'Tracking Active';
+            
+            // Reset reps counter if starting fresh
+            if (reps === 0) {
+                repsCounter.textContent = '0';
+            }
+            
+            // Start animation loop
+            function animate() {
+                if (!isTraining) return;
+                
+                // Simulate grid movement during training
+                const time = Date.now() / 1000;
+                const moveX = Math.sin(time * 0.3) * 5;
+                const moveY = Math.cos(time * 0.2) * 5;
+                scene.style.transform += ` translate3d(${moveX}px, ${moveY}px, 0)`;
+                
+                animationFrame = requestAnimationFrame(animate);
+            }
+            
+            animate();
+            
+            // Simulate rep counting
+            simulateRepCounting();
+        }
+        
+        // Simulate rep counting
+        function simulateRepCounting() {
+            if (!isTraining) return;
+            
+            reps += 1;
+            repsCounter.textContent = reps.toLocaleString();
+            
+            // Add visual feedback
+            scene.style.boxShadow = `0 0 50px ${exercises[currentExercise].color}`;
+            setTimeout(() => {
+                scene.style.boxShadow = 'none';
+            }, 100);
+            
+            // Change exercise every 300 reps
+            if (reps % 300 === 0) {
+                currentExercise = (currentExercise + 1) % exercises.length;
+                exerciseName.textContent = exercises[currentExercise].name;
+                exerciseName.style.color = exercises[currentExercise].color;
+                exerciseName.style.textShadow = `0 0 10px ${exercises[currentExercise].color}`;
+            }
+            
+            // Schedule next rep
+            const nextRepTime = 100 + Math.random() * 400; // 100-500ms between reps
+            setTimeout(simulateRepCounting, nextRepTime);
+        }
+        
+        // Pause training
+        function pauseTraining() {
+            isTraining = false;
+            startBtn.textContent = 'Resume';
+            sensorData.innerHTML = 'Tracking Paused';
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+                animationFrame = null;
+            }
+        }
+        
+        // Reset training
+        function resetTraining() {
+            pauseTraining();
+            reps = 0;
+            repsCounter.textContent = '0';
+            currentExercise = 0;
+            exerciseName.textContent = exercises[currentExercise].name;
+            exerciseName.style.color = exercises[currentExercise].color;
+            startBtn.textContent = 'Start';
+            scene.style.transform = 'matrix3d(1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1)';
+            sensorData.innerHTML = 'Ready to Train';
+        }
+        
+        // Change training mode
+        function changeMode() {
+            currentExercise = (currentExercise + 1) % exercises.length;
+            exerciseName.textContent = exercises[currentExercise].name;
+            exerciseName.style.color = exercises[currentExercise].color;
+            exerciseName.style.textShadow = `0 0 10px ${exercises[currentExercise].color}`;
+            
+            // Visual feedback
+            modeBtn.style.background = `linear-gradient(to bottom, ${exercises[currentExercise].color}, #003355)`;
+            setTimeout(() => {
+                modeBtn.style.background = 'linear-gradient(to bottom, #006688, #003355)';
+            }, 500);
+        }
+        
+        // Initialize the app
+        function initApp() {
+            createGrid();
+            
+            // Event listeners
+            startBtn.addEventListener('click', startTraining);
+            resetBtn.addEventListener('click', resetTraining);
+            modeBtn.addEventListener('click', changeMode);
+            calibrateBtn.addEventListener('click', () => {
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission()
+                        .then(permissionState => {
+                            if (permissionState === 'granted') {
+                                window.addEventListener('deviceorientation', calibrateOrientation, { once: true });
+                                sensorData.innerHTML = 'Hold position and wait...';
+                            } else {
+                                sensorData.innerHTML = 'Permission denied. Using simulated data.';
+                                setTimeout(() => {
+                                    isCalibrated = true;
+                                    calibrationOverlay.style.display = 'none';
+                                }, 2000);
+                            }
+                        })
+                        .catch(console.error);
+                } else {
+                    // For browsers that don't require permission
+                    window.addEventListener('deviceorientation', calibrateOrientation, { once: true });
+                    sensorData.innerHTML = 'Hold position and wait...';
+                }
+            });
+            
+            // Initial exercise setup
+            exerciseName.textContent = exercises[currentExercise].name;
+            exerciseName.style.color = exercises[currentExercise].color;
+            exerciseName.style.textShadow = `0 0 10px ${exercises[currentExercise].color}`;
+            
+            // Add device orientation listener
+            if (window.DeviceOrientationEvent) {
+                window.addEventListener('deviceorientation', handleOrientation);
+            } else {
+                sensorData.innerHTML = 'Device orientation not supported. Using simulated data.';
+                isCalibrated = true;
+                calibrationOverlay.style.display = 'none';
+            }
+        }
+        
+        // Start the app when loaded
+        window.addEventListener('load', initApp);
+    </script>
+</body>
+</html>
