@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Android Training Protocol v3</title>
+    <title>Android Training Protocol v4</title>
     <!-- Three.js CDN for 3D rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <!-- Google Fonts - Orbitron for sci-fi look -->
@@ -244,8 +244,6 @@
 
         <p id="messageDisplay">Tap START to begin your training.</p>
 
-        <!-- Clicking area removed as per request -->
-
         <button id="startButton" class="btn">START TRAINING</button>
         <button id="stopButton" class="btn btn-stop" style="display: none;">STOP TRAINING</button>
         <button id="permissionButton" class="btn" style="display: none;">GRANT SENSOR PERMISSION</button>
@@ -268,18 +266,17 @@
 
     <script>
         // --- Three.js Setup ---
-        let scene, camera, renderer, gridHelper, verticalLines, stars, structures;
-        let deviceOrientationQuaternion = new THREE.Quaternion();
+        let scene, camera, renderer, spaceGrid, stars;
 
         function init3DScene() {
             // Scene
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x000000); // Black background for deep space
-            scene.fog = new THREE.FogExp2(0x000000, 0.008); // Subtle fog for depth
+            scene.fog = new THREE.FogExp2(0x000000, 0.005); // More pronounced fog for depth
 
             // Camera
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 1.5, 5); // Slightly above ground, looking forward
+            camera.position.set(0, 0, 0); // Camera starts at the origin for a true 3D space feel
 
             // Renderer
             renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('trainingCanvas'), antialias: true });
@@ -294,67 +291,48 @@
             pointLight.position.set(0, 5, 0);
             scene.add(pointLight);
 
-            // Grid (the "surface" - floor)
-            const gridSize = 150; // Larger grid
-            const divisions = 150; // More divisions for higher density
-            gridHelper = new THREE.GridHelper(gridSize, divisions, 0x00ffff, 0x008888); // Neon cyan grid
-            gridHelper.material.opacity = 0.3; /* Slightly less opaque */
-            gridHelper.material.transparent = true;
-            scene.add(gridHelper);
+            // Complete 3D Grid representing space
+            spaceGrid = new THREE.Group();
+            const gridSize = 200; // Even larger grid for vastness
+            const divisions = 200; // More divisions for higher density
+            const gridMaterial = new THREE.LineBasicMaterial({ color: 0x00ffff, opacity: 0.2, transparent: true });
 
-            // Vertical Columns (Tron-like)
-            verticalLines = new THREE.Group();
-            const material = new THREE.LineBasicMaterial({ color: 0x00ffff, linewidth: 2 }); // Neon cyan lines
-            const geometry = new THREE.BufferGeometry().setFromPoints([
-                new THREE.Vector3(0, 0, 0),
-                new THREE.Vector3(0, 20, 0) // Lines extending upwards, taller
-            ]);
+            // Horizontal Grid (XY plane)
+            const gridXY = new THREE.GridHelper(gridSize, divisions, 0x00ffff, 0x008888);
+            gridXY.material = gridMaterial.clone(); // Clone material to allow individual opacity
+            spaceGrid.add(gridXY);
 
-            const numColumns = 40; // More columns for denser feel
-            const columnSpacing = 5; // Closer spacing
-            for (let i = 0; i < numColumns; i++) {
-                for (let j = 0; j < numColumns; j++) {
-                    const line = new THREE.Line(geometry, material);
-                    line.position.set(
-                        (i - numColumns / 2) * columnSpacing,
-                        0,
-                        (j - numColumns / 2) * columnSpacing
-                    );
-                    verticalLines.add(line);
-                }
-            }
-            scene.add(verticalLines);
+            // Vertical Grid (XZ plane) - rotated to be perpendicular to XY
+            const gridXZ = new THREE.GridHelper(gridSize, divisions, 0x00ffff, 0x008888);
+            gridXZ.rotation.x = Math.PI / 2; // Rotate 90 degrees around X-axis
+            gridXZ.material = gridMaterial.clone();
+            spaceGrid.add(gridXZ);
 
-            // Starfield (for the "sky")
+            // Vertical Grid (YZ plane) - rotated to be perpendicular to XY and XZ
+            const gridYZ = new THREE.GridHelper(gridSize, divisions, 0x00ffff, 0x008888);
+            gridYZ.rotation.z = Math.PI / 2; // Rotate 90 degrees around Z-axis
+            gridYZ.material = gridMaterial.clone();
+            spaceGrid.add(gridYZ);
+
+            scene.add(spaceGrid);
+
+            // Starfield (for the "sky" - now all around)
             const starGeometry = new THREE.BufferGeometry();
             const starVertices = [];
-            for (let i = 0; i < 2000; i++) { // More stars
-                const x = THREE.MathUtils.randFloatSpread(400); // Wider spread
-                const y = THREE.MathUtils.randFloatSpread(400);
-                const z = THREE.MathUtils.randFloatSpread(400);
+            for (let i = 0; i < 5000; i++) { // Even more stars
+                const x = THREE.MathUtils.randFloatSpread(500); // Wider spread
+                const y = THREE.MathUtils.randFloatSpread(500);
+                const z = THREE.MathUtils.randFloatSpread(500);
                 starVertices.push(x, y, z);
             }
             starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
-            const starMaterial = new THREE.PointsMaterial({ color: 0xaaaaaa, size: 0.3 }); // Slightly brighter, larger stars
+            const starMaterial = new THREE.PointsMaterial({ color: 0xaaaaaa, size: 0.4 }); // Slightly brighter, larger stars
             stars = new THREE.Points(starGeometry, starMaterial);
             scene.add(stars);
 
-            // Futuristic Structures (simple boxes)
-            structures = new THREE.Group();
-            const boxGeometry = new THREE.BoxGeometry(3, 10, 3);
-            const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true }); // Neon wireframe
-            const numStructures = 20;
-            for (let i = 0; i < numStructures; i++) {
-                const box = new THREE.Mesh(boxGeometry, boxMaterial);
-                box.position.set(
-                    THREE.MathUtils.randFloatSpread(gridSize * 0.8),
-                    boxGeometry.parameters.height / 2, // Place on the grid
-                    THREE.MathUtils.randFloatSpread(gridSize * 0.8)
-                );
-                structures.add(box);
-            }
-            scene.add(structures);
-
+            // Remove verticalLines and structures as they are replaced by the 3D grid concept
+            // verticalLines = new THREE.Group(); // Not needed
+            // structures = new THREE.Group(); // Not needed
 
             // Handle window resize
             window.addEventListener('resize', onWindowResize, false);
@@ -372,10 +350,6 @@
             if (stars) {
                 stars.rotation.y += 0.0005;
                 stars.rotation.x += 0.0002;
-            }
-            // Rotate structures slightly
-            if (structures) {
-                structures.rotation.y += 0.0003;
             }
             renderer.render(scene, camera);
         }
@@ -439,6 +413,7 @@
             // Apply device orientation to the camera
             // YXZ order is common for device orientation, negating alpha to match typical conventions
             // This makes the camera rotate with the device, keeping the 3D world fixed relative to the real world.
+            // This is the "high precision" adjustment for orientation.
             const euler = new THREE.Euler();
             euler.set(beta, gamma, -alpha, 'YXZ');
             camera.quaternion.setFromEuler(euler);
@@ -460,7 +435,7 @@
                 } else if (stepDirection === 'down') {
                     // Looking for a trough (backward tilt/return)
                     if (currentBeta < currentTroughBeta) {
-                        currentTroughBeta = currentBeta;
+                        currentTroughBeta = currentTroughBeta; // Keep updating trough
                     } else if (currentBeta > currentTroughBeta + 5 && currentTroughBeta < Infinity) {
                         // Beta started increasing after a trough, potential trough found
                         if (currentPeakBeta - currentTroughBeta >= MIN_STEP_RANGE && (currentTime - lastStepTime > STEP_COOLDOWN)) {
