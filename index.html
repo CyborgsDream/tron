@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Android Training Protocol v2</title>
+    <title>Android Training Protocol v3</title>
     <!-- Three.js CDN for 3D rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <!-- Google Fonts - Orbitron for sci-fi look -->
@@ -44,49 +44,49 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 15px; /* Smaller padding */
             background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent overlay */
             border-radius: 15px;
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.5); /* Neon glow */
             border: 1px solid #00ffff;
             max-width: 90%;
-            width: 450px; /* Slightly wider for two stats */
+            width: 380px; /* Adjusted width */
             box-sizing: border-box;
         }
 
         /* Text elements */
         h1 {
-            font-size: 2.5em;
+            font-size: 2em; /* Smaller font size */
             text-shadow: 0 0 10px #00ffff;
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Smaller margin */
             text-align: center;
         }
 
         .stats-container {
             display: flex;
-            justify-content: space-around;
+            justify-content: center; /* Center single stat */
             width: 100%;
-            margin-bottom: 15px;
+            margin-bottom: 10px; /* Smaller margin */
         }
 
         .stat-item {
             text-align: center;
-            padding: 10px;
+            padding: 8px; /* Smaller padding */
             border-radius: 8px;
             background-color: rgba(0, 255, 255, 0.1);
             border: 1px solid rgba(0, 255, 255, 0.3);
-            flex: 1;
-            margin: 0 5px;
+            flex: none; /* No flex grow */
+            margin: 0; /* No side margins */
         }
 
-        #stepCount, #clickingPointsCount {
-            font-size: 1.8em;
+        #stepCount {
+            font-size: 1.5em; /* Smaller font size */
             text-shadow: 0 0 8px #00ffff;
             margin-top: 5px;
         }
 
         #messageDisplay {
-            font-size: 1.2em;
+            font-size: 1em; /* Smaller font size */
             margin-bottom: 15px;
             text-shadow: 0 0 5px #00ffff;
             text-align: center;
@@ -97,19 +97,19 @@
         .btn {
             background: linear-gradient(45deg, #00ffff, #00aaff); /* Neon gradient */
             color: #000; /* Dark text on neon */
-            padding: 15px 30px;
+            padding: 12px 25px; /* Smaller padding */
             border: none;
             border-radius: 50px; /* Pill shape */
-            font-size: 1.2em;
+            font-size: 1em; /* Smaller font size */
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin: 10px 0;
+            margin: 8px 0; /* Smaller margin */
             width: 80%; /* Make buttons responsive */
-            max-width: 250px;
+            max-width: 220px; /* Adjusted max-width */
         }
 
         .btn:hover {
@@ -133,50 +133,6 @@
             box-shadow: 0 0 25px rgba(255, 0, 255, 1);
         }
 
-        /* Central Clicking Area */
-        #clickingArea {
-            width: 150px;
-            height: 150px;
-            background-color: rgba(0, 255, 255, 0.2); /* Semi-transparent neon */
-            border: 3px solid #00ffff;
-            border-radius: 50%; /* Circle shape */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
-            transition: all 0.1s ease-out;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            position: relative;
-            overflow: hidden; /* For ripple effect */
-        }
-
-        #clickingArea:hover {
-            background-color: rgba(0, 255, 255, 0.3);
-            box-shadow: 0 0 30px rgba(0, 255, 255, 1);
-        }
-
-        #clickingArea:active {
-            transform: scale(0.95);
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-        }
-
-        .ripple {
-            position: absolute;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.7); /* White ripple */
-            animation: ripple-effect 0.4s linear forwards;
-            transform: scale(0);
-        }
-
-        @keyframes ripple-effect {
-            to {
-                transform: scale(1.5);
-                opacity: 0;
-            }
-        }
-
         /* Custom Modal Styling */
         .modal {
             display: none; /* Hidden by default */
@@ -194,11 +150,11 @@
         }
         .modal-content {
             background-color: #1a1a1a; /* Dark modal background */
-            padding: 30px;
+            padding: 25px; /* Smaller padding */
             border-radius: 15px;
             box-shadow: 0 0 30px rgba(0, 255, 255, 0.8); /* Stronger neon glow */
             max-width: 90%;
-            width: 450px;
+            width: 400px; /* Adjusted width */
             text-align: center;
             position: relative;
             border: 2px solid #00ffff;
@@ -207,9 +163,9 @@
         .close-button {
             color: #00ffff;
             position: absolute;
-            top: 15px;
-            right: 20px;
-            font-size: 36px;
+            top: 10px; /* Adjusted position */
+            right: 15px; /* Adjusted position */
+            font-size: 32px; /* Smaller font size */
             font-weight: bold;
             cursor: pointer;
             text-shadow: 0 0 10px #00ffff;
@@ -222,53 +178,50 @@
             text-shadow: 0 0 15px #fff;
         }
         .modal-content h3 {
-            font-size: 2em;
-            margin-bottom: 20px;
+            font-size: 1.8em; /* Smaller font size */
+            margin-bottom: 15px; /* Smaller margin */
             text-shadow: 0 0 10px #00ffff;
         }
         .modal-content p {
-            font-size: 1.1em;
+            font-size: 1em; /* Smaller font size */
             line-height: 1.5;
-            margin-bottom: 25px;
+            margin-bottom: 20px; /* Smaller margin */
         }
         .modal-content .btn {
-            margin-top: 15px;
+            margin-top: 10px; /* Smaller margin */
         }
 
         /* Responsive adjustments */
         @media (max-width: 600px) {
             h1 {
-                font-size: 1.8em;
+                font-size: 1.5em; /* Even smaller on mobile */
             }
             .stat-item {
-                font-size: 0.9em;
-                padding: 8px;
+                font-size: 0.8em;
+                padding: 6px;
             }
-            #stepCount, #clickingPointsCount {
-                font-size: 1.4em;
+            #stepCount {
+                font-size: 1.2em;
             }
             #messageDisplay {
-                font-size: 1em;
+                font-size: 0.9em;
             }
             .btn {
-                padding: 12px 25px;
-                font-size: 1em;
+                padding: 10px 20px;
+                font-size: 0.9em;
             }
             .ui-container {
-                padding: 15px;
-            }
-            #clickingArea {
-                width: 120px;
-                height: 120px;
+                padding: 10px;
+                width: 95%; /* Wider on small screens */
             }
             .modal-content {
-                padding: 20px;
+                padding: 15px;
             }
             .modal-content h3 {
-                font-size: 1.6em;
+                font-size: 1.4em;
             }
             .modal-content p {
-                font-size: 1em;
+                font-size: 0.9em;
             }
         }
     </style>
@@ -287,15 +240,11 @@
                 <div>STEPS</div>
                 <div id="stepCount">0</div>
             </div>
-            <div class="stat-item">
-                <div>CLICKING POINTS</div>
-                <div id="clickingPointsCount">0</div>
-            </div>
         </div>
 
         <p id="messageDisplay">Tap START to begin your training.</p>
 
-        <div id="clickingArea"></div>
+        <!-- Clicking area removed as per request -->
 
         <button id="startButton" class="btn">START TRAINING</button>
         <button id="stopButton" class="btn btn-stop" style="display: none;">STOP TRAINING</button>
@@ -311,7 +260,6 @@
                 Prepare for intensive low-impact, high-repetition training. Hold your phone firmly.
                 The 3D grid will align with the real-world horizon. Perform quick, precise "flick"
                 or "punch-like" movements with your phone to register **Steps**.
-                Tap the central glowing circle for **Clicking Points**.
                 Ensure your device orientation sensors are enabled.
             </p>
             <button id="modalOkBtn" class="btn">UNDERSTOOD</button>
@@ -320,13 +268,14 @@
 
     <script>
         // --- Three.js Setup ---
-        let scene, camera, renderer, gridHelper, verticalLines, stars;
+        let scene, camera, renderer, gridHelper, verticalLines, stars, structures;
         let deviceOrientationQuaternion = new THREE.Quaternion();
 
         function init3DScene() {
             // Scene
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x000000); // Black background for deep space
+            scene.fog = new THREE.FogExp2(0x000000, 0.008); // Subtle fog for depth
 
             // Camera
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -346,10 +295,10 @@
             scene.add(pointLight);
 
             // Grid (the "surface" - floor)
-            const gridSize = 100;
-            const divisions = 100;
+            const gridSize = 150; // Larger grid
+            const divisions = 150; // More divisions for higher density
             gridHelper = new THREE.GridHelper(gridSize, divisions, 0x00ffff, 0x008888); // Neon cyan grid
-            gridHelper.material.opacity = 0.4;
+            gridHelper.material.opacity = 0.3; /* Slightly less opaque */
             gridHelper.material.transparent = true;
             scene.add(gridHelper);
 
@@ -358,11 +307,11 @@
             const material = new THREE.LineBasicMaterial({ color: 0x00ffff, linewidth: 2 }); // Neon cyan lines
             const geometry = new THREE.BufferGeometry().setFromPoints([
                 new THREE.Vector3(0, 0, 0),
-                new THREE.Vector3(0, 15, 0) // Lines extending upwards
+                new THREE.Vector3(0, 20, 0) // Lines extending upwards, taller
             ]);
 
-            const numColumns = 30; // More columns for denser feel
-            const columnSpacing = 7;
+            const numColumns = 40; // More columns for denser feel
+            const columnSpacing = 5; // Closer spacing
             for (let i = 0; i < numColumns; i++) {
                 for (let j = 0; j < numColumns; j++) {
                     const line = new THREE.Line(geometry, material);
@@ -379,16 +328,32 @@
             // Starfield (for the "sky")
             const starGeometry = new THREE.BufferGeometry();
             const starVertices = [];
-            for (let i = 0; i < 1000; i++) {
-                const x = THREE.MathUtils.randFloatSpread(200);
-                const y = THREE.MathUtils.randFloatSpread(200);
-                const z = THREE.MathUtils.randFloatSpread(200);
+            for (let i = 0; i < 2000; i++) { // More stars
+                const x = THREE.MathUtils.randFloatSpread(400); // Wider spread
+                const y = THREE.MathUtils.randFloatSpread(400);
+                const z = THREE.MathUtils.randFloatSpread(400);
                 starVertices.push(x, y, z);
             }
             starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
-            const starMaterial = new THREE.PointsMaterial({ color: 0x888888, size: 0.2 }); // Subtle grey stars
+            const starMaterial = new THREE.PointsMaterial({ color: 0xaaaaaa, size: 0.3 }); // Slightly brighter, larger stars
             stars = new THREE.Points(starGeometry, starMaterial);
             scene.add(stars);
+
+            // Futuristic Structures (simple boxes)
+            structures = new THREE.Group();
+            const boxGeometry = new THREE.BoxGeometry(3, 10, 3);
+            const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true }); // Neon wireframe
+            const numStructures = 20;
+            for (let i = 0; i < numStructures; i++) {
+                const box = new THREE.Mesh(boxGeometry, boxMaterial);
+                box.position.set(
+                    THREE.MathUtils.randFloatSpread(gridSize * 0.8),
+                    boxGeometry.parameters.height / 2, // Place on the grid
+                    THREE.MathUtils.randFloatSpread(gridSize * 0.8)
+                );
+                structures.add(box);
+            }
+            scene.add(structures);
 
 
             // Handle window resize
@@ -408,21 +373,22 @@
                 stars.rotation.y += 0.0005;
                 stars.rotation.x += 0.0002;
             }
+            // Rotate structures slightly
+            if (structures) {
+                structures.rotation.y += 0.0003;
+            }
             renderer.render(scene, camera);
         }
 
         // --- Device Orientation & Step Logic ---
         const stepCountDisplay = document.getElementById('stepCount');
-        const clickingPointsCountDisplay = document.getElementById('clickingPointsCount');
         const messageDisplay = document.getElementById('messageDisplay');
         const startButton = document.getElementById('startButton');
         const stopButton = document.getElementById('stopButton');
         const permissionButton = document.getElementById('permissionButton');
-        const clickingArea = document.getElementById('clickingArea');
 
         let trainingActive = false;
         let steps = 0;
-        let clickingPoints = 0;
 
         // Step detection variables (Peak/Trough method for beta tilt)
         let currentPeakBeta = -Infinity;
@@ -548,47 +514,15 @@
             }
         }
 
-        // --- Clicking Points Logic ---
-        clickingArea.addEventListener('click', (event) => {
-            if (trainingActive) {
-                clickingPoints++;
-                clickingPointsCountDisplay.textContent = `${clickingPoints}`;
-                messageDisplay.textContent = `Clicking Point! Total: ${clickingPoints}`;
-
-                // Ripple effect
-                const ripple = document.createElement('span');
-                ripple.classList.add('ripple');
-                const rect = clickingArea.getBoundingClientRect();
-                const size = Math.max(rect.width, rect.height);
-                ripple.style.width = ripple.style.height = `${size}px`;
-                ripple.style.left = `${event.clientX - rect.left - size / 2}px`;
-                ripple.style.top = `${event.clientY - rect.top - size / 2}px`;
-                clickingArea.appendChild(ripple);
-                ripple.addEventListener('animationend', () => {
-                    ripple.remove();
-                });
-
-                if (navigator.vibrate) {
-                    navigator.vibrate(20); // Shorter vibrate for click
-                }
-            } else {
-                messageDisplay.textContent = 'Tap START to activate clicking points.';
-            }
-        });
-
-
         // --- Training Control ---
         startButton.addEventListener('click', () => {
             if (!trainingActive) {
                 steps = 0;
-                clickingPoints = 0;
                 stepCountDisplay.textContent = `${steps}`;
-                clickingPointsCountDisplay.textContent = `${clickingPoints}`;
                 trainingActive = true;
                 startButton.style.display = 'none';
                 stopButton.style.display = 'block';
                 messageDisplay.textContent = 'TRAINING IN PROGRESS...';
-                clickingArea.style.display = 'flex'; // Show clicking area
                 // Reset step detection state
                 currentPeakBeta = -Infinity;
                 currentTroughBeta = Infinity;
@@ -602,8 +536,7 @@
                 trainingActive = false;
                 startButton.style.display = 'block';
                 stopButton.style.display = 'none';
-                clickingArea.style.display = 'none'; // Hide clicking area
-                messageDisplay.textContent = `TRAINING COMPLETE! Steps: ${steps}, Clicks: ${clickingPoints}`;
+                messageDisplay.textContent = `TRAINING COMPLETE! Total Steps: ${steps}`;
             }
         });
 
@@ -611,9 +544,6 @@
         window.onload = function() {
             init3DScene();
             animate(); // Start the 3D animation loop immediately
-
-            // Hide clicking area initially
-            clickingArea.style.display = 'none';
 
             // Check if permission is needed for device orientation
             if (typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -630,7 +560,7 @@
             permissionButton.addEventListener('click', requestDeviceOrientationPermission);
 
             // Show initial welcome message in modal
-            showModal('Welcome, Trainee!', 'Prepare for intensive low-impact, high-repetition training. Hold your phone firmly. The 3D grid will align with the real-world horizon. Perform quick, precise "flick" or "punch-like" movements with your phone to register **Steps**. Tap the central glowing circle for **Clicking Points**. Ensure your device orientation sensors are enabled.');
+            showModal('Welcome, Trainee!', 'Prepare for intensive low-impact, high-repetition training. Hold your phone firmly. The 3D grid will align with the real-world horizon. Perform quick, precise "flick" or "punch-like" movements with your phone to register **Steps**. Ensure your device orientation sensors are enabled.');
         };
     </script>
 </body>
