@@ -17,8 +17,8 @@
   <script>
     let scene,camera,renderer,wallGrids,verticalLines;
     let orientationBuffer=[];
-    const ROOM_SIZE=50;
-    const GRID_SPACING=5;
+    const ROOM_SIZE=30;
+    const GRID_SPACING=10;
     function initScene(){
       scene=new THREE.Scene();
       scene.background=new THREE.Color(0x000000);
@@ -34,7 +34,7 @@
       scene.add(light);
 
       const floorSize=ROOM_SIZE;
-      const floorDiv=50;
+      const floorDiv=30;
       const floorMat=new THREE.LineBasicMaterial({color:0x00ffff,opacity:0.4,transparent:true});
       const floorGrid=new THREE.GridHelper(floorSize,floorDiv,0x00ffff,0x008888);
       floorGrid.material=floorMat;
@@ -42,7 +42,7 @@
 
       wallGrids=new THREE.Group();
       const wallSize=ROOM_SIZE;
-      const wallDiv=50;
+      const wallDiv=30;
       const wallMat=new THREE.LineBasicMaterial({color:0x00ffff,opacity:0.2,transparent:true});
       const front=new THREE.GridHelper(wallSize,wallDiv,0x00ffff,0x008888);front.rotation.x=Math.PI/2;front.position.z=-wallSize/2;front.position.y=wallSize/2;front.material=wallMat.clone();wallGrids.add(front);
       const back=new THREE.GridHelper(wallSize,wallDiv,0x00ffff,0x008888);back.rotation.x=Math.PI/2;back.position.z=wallSize/2;back.position.y=wallSize/2;back.material=wallMat.clone();wallGrids.add(back);
