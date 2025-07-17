@@ -14,9 +14,13 @@
 <body>
   <canvas id="sceneCanvas"></canvas>
   <button id="permissionBtn" style="display:none;">Enable Motion</button>
+  <button id="calibrateBtn" style="display:none;top:60px;left:20px;position:absolute;padding:10px 20px;font-family:sans-serif;font-size:16px;">Calibrate</button>
   <script>
     let scene,camera,renderer,wallGrids,verticalLines;
     let orientationBuffer=[];
+    let orientationOffset={alpha:0,beta:0,gamma:0};
+    let lastRaw={alpha:0,beta:0,gamma:0};
+    const BUFFER_SIZE=10;
     const ROOM_SIZE=30;
     const GRID_SPACING=10;
     function initScene(){
@@ -105,10 +109,21 @@
       renderer.setSize(window.innerWidth,window.innerHeight);
     }
 
+    function calibrateOrientation(){
+      orientationOffset={...lastRaw};
+      orientationBuffer=[];
+    }
+
     function handleOrientation(e){
       const raw={alpha:e.alpha||0,beta:e.beta||0,gamma:e.gamma||0};
-      orientationBuffer.push(raw);
-      if(orientationBuffer.length>5)orientationBuffer.shift();
+      lastRaw=raw;
+      const diff={
+        alpha:((raw.alpha-orientationOffset.alpha+540)%360)-180,
+        beta:((raw.beta-orientationOffset.beta+540)%360)-180,
+        gamma:((raw.gamma-orientationOffset.gamma+540)%360)-180
+      };
+      orientationBuffer.push(diff);
+      if(orientationBuffer.length>BUFFER_SIZE)orientationBuffer.shift();
       let totalW=0,smoothed={alpha:0,beta:0,gamma:0};
       for(let i=0;i<orientationBuffer.length;i++){
         const w=(i+1)/orientationBuffer.length;totalW+=w;
@@ -130,12 +145,18 @@
       const quaternion=new THREE.Quaternion().setFromEuler(euler);
       quaternion.multiply(q1);
       quaternion.multiply(q0.setFromAxisAngle(zee,-orient));
-      camera.quaternion.slerp(quaternion,0.5);
+      camera.quaternion.slerp(quaternion,0.2);
+    }
+
+    function startOrientation(){
+      window.addEventListener('deviceorientation',handleOrientation);
+      calibrateOrientation();
+      document.getElementById('calibrateBtn').style.display='block';
     }
 
     function requestPermission(){
       if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
-        DeviceOrientationEvent.requestPermission().then(state=>{if(state==='granted'){window.addEventListener('deviceorientation',handleOrientation);document.getElementById('permissionBtn').style.display='none';}}).catch(console.error);
+        DeviceOrientationEvent.requestPermission().then(state=>{if(state==='granted'){startOrientation();document.getElementById('permissionBtn').style.display='none';}}).catch(console.error);
       }
     }
 
@@ -148,11 +169,13 @@
       initScene();
       animate();
       const btn=document.getElementById('permissionBtn');
+      const calib=document.getElementById('calibrateBtn');
+      calib.addEventListener('click',calibrateOrientation);
       if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
         btn.style.display='block';
         btn.addEventListener('click',requestPermission);
       }else{
-        window.addEventListener('deviceorientation',handleOrientation);
+        startOrientation();
       }
     });
   </script>
