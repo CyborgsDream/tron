@@ -17,10 +17,9 @@
   <button id="calibrateBtn" style="display:none;top:60px;left:20px;position:absolute;padding:10px 20px;font-family:sans-serif;font-size:16px;">Calibrate</button>
   <script>
     let scene,camera,renderer,wallGrids,verticalLines;
-    let orientationBuffer=[];
-    let orientationOffset={alpha:0,beta:0,gamma:0};
-    let lastRaw={alpha:0,beta:0,gamma:0};
-    const BUFFER_SIZE=10;
+    let orientationOffsetQuat=new THREE.Quaternion();
+    let lastQuat=new THREE.Quaternion();
+    let offsetInitialized=false;
     const ROOM_SIZE=30;
     const GRID_SPACING=10;
     function initScene(){
@@ -110,32 +109,16 @@
     }
 
     function calibrateOrientation(){
-      orientationOffset={...lastRaw};
-      orientationBuffer=[];
+      orientationOffsetQuat.copy(lastQuat);
+      offsetInitialized=true;
     }
 
     function handleOrientation(e){
       const raw={alpha:e.alpha||0,beta:e.beta||0,gamma:e.gamma||0};
-      lastRaw=raw;
-      const diff={
-        alpha:((raw.alpha-orientationOffset.alpha+540)%360)-180,
-        beta:((raw.beta-orientationOffset.beta+540)%360)-180,
-        gamma:((raw.gamma-orientationOffset.gamma+540)%360)-180
-      };
-      orientationBuffer.push(diff);
-      if(orientationBuffer.length>BUFFER_SIZE)orientationBuffer.shift();
-      let totalW=0,smoothed={alpha:0,beta:0,gamma:0};
-      for(let i=0;i<orientationBuffer.length;i++){
-        const w=(i+1)/orientationBuffer.length;totalW+=w;
-        smoothed.alpha+=orientationBuffer[i].alpha*w;
-        smoothed.beta+=orientationBuffer[i].beta*w;
-        smoothed.gamma+=orientationBuffer[i].gamma*w;
-      }
-      smoothed.alpha/=totalW;smoothed.beta/=totalW;smoothed.gamma/=totalW;
       const r=Math.PI/180;
-      const alpha=smoothed.alpha*r;
-      const beta=smoothed.beta*r;
-      const gamma=smoothed.gamma*r;
+      const alpha=raw.alpha*r;
+      const beta=raw.beta*r;
+      const gamma=raw.gamma*r;
       const orient=window.orientation?THREE.MathUtils.degToRad(window.orientation):0;
       const euler=new THREE.Euler();
       const zee=new THREE.Vector3(0,0,1);
@@ -145,12 +128,14 @@
       const quaternion=new THREE.Quaternion().setFromEuler(euler);
       quaternion.multiply(q1);
       quaternion.multiply(q0.setFromAxisAngle(zee,-orient));
-      camera.quaternion.slerp(quaternion,0.2);
+      lastQuat.copy(quaternion);
+      if(!offsetInitialized){orientationOffsetQuat.copy(quaternion);offsetInitialized=true;}
+      const calibrated=quaternion.clone().premultiply(orientationOffsetQuat.clone().invert());
+      camera.quaternion.slerp(calibrated,0.2);
     }
 
     function startOrientation(){
       window.addEventListener('deviceorientation',handleOrientation);
-      calibrateOrientation();
       document.getElementById('calibrateBtn').style.display='block';
     }
 
