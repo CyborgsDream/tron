@@ -35,8 +35,8 @@
 
       const floorSize=ROOM_SIZE;
       const floorDiv=30;
-      const floorMat=new THREE.LineBasicMaterial({color:0x00ffff,opacity:0.4,transparent:true});
-      const floorGrid=new THREE.GridHelper(floorSize,floorDiv,0x00ffff,0x008888);
+      const floorMat=new THREE.LineBasicMaterial({color:0xffff00,opacity:0.4,transparent:true});
+      const floorGrid=new THREE.GridHelper(floorSize,floorDiv,0xffff00,0x888800);
       floorGrid.material=floorMat;
       scene.add(floorGrid);
 
@@ -52,6 +52,7 @@
       scene.add(wallGrids);
 
       createVerticalLines();
+      createHorizontalLines();
       window.addEventListener('resize',onResize);
     }
 
@@ -73,6 +74,29 @@
       verticalLines=new THREE.LineSegments(geo,mat);
       verticalLines.renderOrder=1;
       scene.add(verticalLines);
+    }
+
+    function createHorizontalLines(){
+      const gridExtent=ROOM_SIZE/2;
+      const step=GRID_SPACING;
+      const levels=[step/2, ROOM_SIZE/2, ROOM_SIZE-step/2];
+      const vertices=[];
+      for(const y of levels){
+        for(let x=-gridExtent;x<=gridExtent;x+=step){
+          vertices.push(x,y,-gridExtent);
+          vertices.push(x,y,gridExtent);
+        }
+        for(let z=-gridExtent;z<=gridExtent;z+=step){
+          vertices.push(-gridExtent,y,z);
+          vertices.push(gridExtent,y,z);
+        }
+      }
+      const geo=new THREE.BufferGeometry();
+      geo.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
+      const mat=new THREE.LineBasicMaterial({color:0xff00ff,opacity:0.4,transparent:true,depthWrite:false});
+      const horizontalLines=new THREE.LineSegments(geo,mat);
+      horizontalLines.renderOrder=1;
+      scene.add(horizontalLines);
     }
 
     function onResize(){
