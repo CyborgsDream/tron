@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<title>Infinite 3D Terrain with Device Orientation</title>
+<style>
+  body, html { margin: 0; overflow: hidden; height: 100%; background: #222; }
+  canvas { display: block; }
+  #info {
+    position: absolute;
+    top: 10px; left: 10px; color: white;
+    font-family: monospace; font-size: 14px;
+    background: rgba(0,0,0,0.3); padding: 5px; border-radius: 5px;
+    max-width: 300px;
+  }
+</style>
+</head>
+<body>
+<div id="info">Move your phone or use mouse drag (desktop) to rotate camera</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.153.0/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+// Setup basic Three.js scene
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x202020);
+
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.set(0, 15, 30);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Controls fallback for desktop
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.1;
+controls.minDistance = 5;
+controls.maxDistance = 100;
+
+// Terrain parameters
+const chunkSize = 20; // Number of vertices per side in chunk
+const chunkScale = 2;  // spacing between vertices
+const renderDistance = 3; // how many chunks loaded around camera
+
+// Storage for chunks keyed by "chunkX_chunkZ"
+const chunks = new Map();
+
+// Simple height function — perlin/simplex noise would be better but using Math.sin for demo
+function getHeight(x, z) {
+  return 2 * Math.sin(0.1*x) * Math.cos(0.1*z);
+}
+
+// Create a plane geometry chunk with dynamic heights
+function createChunk(chunkX, chunkZ) {
+  const geometry = new THREE.PlaneGeometry(
+    (chunkSize-1)*chunkScale,
+    (chunkSize-1)*chunkScale,
+    chunkSize-1,
+    chunkSize-1
+  );
+  geometry.rotateX(-Math.PI/2); // make horizontal
+
+  // Set vertex heights
+  const vertices = geometry.attributes.position;
+  for (let i = 0; i < vertices.count; i++) {
+    const vx = vertices.getX(i) + chunkX * (chunkSize-1)*chunkScale;
+    const vz = vertices.getZ(i) + chunkZ * (chunkSize-1)*chunkScale;
+    const vy = getHeight(vx, vz);
+    vertices.setY(i, vy);
+  }
+  vertices.needsUpdate = true;
+  geometry.computeVertexNormals();
+
+  const material = new THREE.MeshStandardMaterial({
+    color: 0x4caf50,
+    wireframe: false,
+    flatShading: false,
+    side: THREE.DoubleSide,
+  });
+
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.set(
+    chunkX * (chunkSize-1)*chunkScale,
+    0,
+    chunkZ * (chunkSize-1)*chunkScale
+  );
+
+  return mesh;
+}
+
+// Load chunks around camera
+function updateChunks() {
+  const camX = Math.floor(camera.position.x / ((chunkSize-1)*chunkScale));
+  const camZ = Math.floor(camera.position.z / ((chunkSize-1)*chunkScale));
+
+  // Load required chunks
+  for (let x = camX - renderDistance; x <= camX + renderDistance; x++) {
+    for (let z = camZ - renderDistance; z <= camZ + renderDistance; z++) {
+      const key = `${x}_${z}`;
+      if (!chunks.has(key)) {
+        const chunk = createChunk(x, z);
+        scene.add(chunk);
+        chunks.set(key, chunk);
+      }
+    }
+  }
+
+  // Remove distant chunks
+  for (const [key, mesh] of chunks) {
+    const [x, z] = key.split('_').map(Number);
+    if (Math.abs(x - camX) > renderDistance || Math.abs(z - camZ) > renderDistance) {
+      scene.remove(mesh);
+      mesh.geometry.dispose();
+      mesh.material.dispose();
+      chunks.delete(key);
+    }
+  }
+}
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+directionalLight.position.set(30, 50, -30);
+scene.add(directionalLight);
+
+// Device orientation handling
+let deviceAlpha = 0, deviceBeta = 0, deviceGamma = 0;
+let deviceOrientationAvailable = false;
+
+window.addEventListener('deviceorientation', (event) => {
+  if(event.alpha !== null) {
+    deviceAlpha = event.alpha;
+    deviceBeta = event.beta;
+    deviceGamma = event.gamma;
+    deviceOrientationAvailable = true;
+  }
+});
+
+// Convert device orientation to camera rotation
+function applyDeviceOrientation() {
+  if (!deviceOrientationAvailable) return;
+
+  // DeviceOrientation angles are in degrees
+  // alpha = compass rotation (0 - 360)
+  // beta = front-back tilt (-180 to 180)
+  // gamma = left-right tilt (-90 to 90)
+
+  // Convert degrees to radians
+  const alpha = THREE.MathUtils.degToRad(deviceAlpha || 0);
+  const beta = THREE.MathUtils.degToRad(deviceBeta || 0);
+  const gamma = THREE.MathUtils.degToRad(deviceGamma || 0);
+
+  // Simple conversion to Euler angles for camera
+  // For better control, use a library or quaternion math. Here's a simplified version:
+
+  // Apply rotation so camera 'looks' as per device orientation
+  camera.rotation.set(beta, alpha, -gamma, 'ZYX');
+}
+
+// Animate loop
+function animate() {
+  requestAnimationFrame(animate);
+
+  if (deviceOrientationAvailable) {
+    applyDeviceOrientation();
+  } else {
+    controls.update();
+  }
+
+  updateChunks();
+
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+animate();
+</script>
+</body>
+</html>

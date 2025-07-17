@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Android Training Protocol v5</title>
+    <!-- Three.js CDN for 3D rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Google Fonts - Orbitron for sci-fi look -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Basic reset and body styling */
+        body {
+            margin: 0;
+            overflow: hidden; /* Hide scrollbars */
+            font-family: 'Orbitron', sans-serif;
+            background-color: #000; /* Deep space background */
+            color: #00ffff; /* Neon cyan for text */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        /* Canvas styling to fill the screen */
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0; /* Behind UI elements */
+        }
+
+        /* UI Container */
+        .ui-container {
+            position: relative;
+            z-index: 1; /* Above canvas */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px; /* Smaller padding */
+            background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent overlay */
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5); /* Neon glow */
+            border: 1px solid #00ffff;
+            max-width: 90%;
+            width: 380px; /* Adjusted width */
+            box-sizing: border-box;
+        }
+
+        /* Text elements */
+        h1 {
+            font-size: 2em; /* Smaller font size */
+            text-shadow: 0 0 10px #00ffff;
+            margin-bottom: 15px; /* Smaller margin */
+            text-align: center;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: center; /* Center single stat */
+            width: 100%;
+            margin-bottom: 10px; /* Smaller margin */
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 8px; /* Smaller padding */
+            border-radius: 8px;
+            background-color: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            flex: none; /* No flex grow */
+            margin: 0; /* No side margins */
+        }
+
+        #stepCount {
+            font-size: 1.5em; /* Smaller font size */
+            text-shadow: 0 0 8px #00ffff;
+            margin-top: 5px;
+        }
+
+        #messageDisplay {
+            font-size: 1em; /* Smaller font size */
+            margin-bottom: 15px;
+            text-shadow: 0 0 5px #00ffff;
+            text-align: center;
+            min-height: 1.5em; /* Prevent layout shift */
+        }
+
+        /* Buttons styling */
+        .btn {
+            background: linear-gradient(45deg, #00ffff, #00aaff); /* Neon gradient */
+            color: #000; /* Dark text on neon */
+            padding: 12px 25px; /* Smaller padding */
+            border: none;
+            border-radius: 50px; /* Pill shape */
+            font-size: 1em; /* Smaller font size */
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 8px 0; /* Smaller margin */
+            width: 80%; /* Make buttons responsive */
+            max-width: 220px; /* Adjusted max-width */
+        }
+
+        .btn:hover {
+            background: linear-gradient(45deg, #00aaff, #00ffff);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 1);
+            transform: translateY(-3px);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .btn-stop {
+            background: linear-gradient(45deg, #ff00ff, #ff0077); /* Magenta gradient for stop */
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.7);
+        }
+
+        .btn-stop:hover {
+            background: linear-gradient(45deg, #ff0077, #ff00ff);
+            box-shadow: 0 0 25px rgba(255, 0, 255, 1);
+        }
+
+        /* Custom Modal Styling */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.8); /* Darker background w/ opacity */
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px); /* Frosted glass effect */
+        }
+        .modal-content {
+            background-color: #1a1a1a; /* Dark modal background */
+            padding: 25px; /* Smaller padding */
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.8); /* Stronger neon glow */
+            max-width: 90%;
+            width: 400px; /* Adjusted width */
+            text-align: center;
+            position: relative;
+            border: 2px solid #00ffff;
+            color: #00ffff;
+        }
+        .close-button {
+            color: #00ffff;
+            position: absolute;
+            top: 10px; /* Adjusted position */
+            right: 15px; /* Adjusted position */
+            font-size: 32px; /* Smaller font size */
+            font-weight: bold;
+            cursor: pointer;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+            text-shadow: 0 0 15px #fff;
+        }
+        .modal-content h3 {
+            font-size: 1.8em; /* Smaller font size */
+            margin-bottom: 15px; /* Smaller margin */
+            text-shadow: 0 0 10px #00ffff;
+        }
+        .modal-content p {
+            font-size: 1em; /* Smaller font size */
+            line-height: 1.5;
+            margin-bottom: 20px; /* Smaller margin */
+        }
+        .modal-content .btn {
+            margin-top: 10px; /* Smaller margin */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5em; /* Even smaller on mobile */
+            }
+            .stat-item {
+                font-size: 0.8em;
+                padding: 6px;
+            }
+            #stepCount {
+                font-size: 1.2em;
+            }
+            #messageDisplay {
+                font-size: 0.9em;
+            }
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9em;
+            }
+            .ui-container {
+                padding: 10px;
+                width: 95%; /* Wider on small screens */
+            }
+            .modal-content {
+                padding: 15px;
+            }
+            .modal-content h3 {
+                font-size: 1.4em;
+            }
+            .modal-content p {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Three.js Canvas -->
+    <canvas id="trainingCanvas"></canvas>
+
+    <!-- UI Container -->
+    <div class="ui-container">
+        <h1>ANDROID TRAINING PROTOCOL</h1>
+
+        <div class="stats-container">
+            <div class="stat-item">
+                <div>STEPS</div>
+                <div id="stepCount">0</div>
+            </div>
+        </div>
+
+        <p id="messageDisplay">Tap START to begin your training.</p>
+
+        <button id="startButton" class="btn">START TRAINING</button>
+        <button id="stopButton" class="btn btn-stop" style="display: none;">STOP TRAINING</button>
+        <button id="permissionButton" class="btn" style="display: none;">GRANT SENSOR PERMISSION</button>
+    </div>
+
+    <!-- Custom Modal Structure -->
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeModalBtn">&times;</span>
+            <h3 id="modalTitle">Welcome, Trainee!</h3>
+            <p id="modalMessage">
+                Prepare for intensive low-impact, high-repetition training. Hold your phone firmly.
+                The 3D grid will align with the real-world horizon. Perform quick, precise "flick"
+                or "punch-like" movements with your phone to register **Steps**.
+                Ensure your device orientation sensors are enabled.
+            </p>
+            <button id="modalOkBtn" class="btn">UNDERSTOOD</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Three.js Setup ---
+        let scene, camera, renderer, floorGrid, wallGrids;
+
+        function init3DScene() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000000); // Black background for deep space
+            scene.fog = new THREE.FogExp2(0x000000, 0.015); // Increased fog for a more enclosed, atmospheric feel
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 1.5, 5); // Positioned slightly above the floor, looking into the space
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('trainingCanvas'), antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040); // Soft white light
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0x00ffff, 1, 100); // Neon cyan light
+            pointLight.position.set(0, 5, 0);
+            scene.add(pointLight);
+
+            // Floor Grid
+            const floorSize = 50; // Size of the floor
+            const floorDivisions = 50;
+            const floorMaterial = new THREE.LineBasicMaterial({ color: 0x00ffff, opacity: 0.4, transparent: true });
+            floorGrid = new THREE.GridHelper(floorSize, floorDivisions, 0x00ffff, 0x008888);
+            floorGrid.material = floorMaterial;
+            scene.add(floorGrid);
+
+            // Wall Grids (to define the surrounding space)
+            wallGrids = new THREE.Group();
+            const wallSize = 50;
+            const wallDivisions = 50;
+            const wallMaterial = new THREE.LineBasicMaterial({ color: 0x00ffff, opacity: 0.2, transparent: true });
+
+            // Front Wall (XZ plane, moved back)
+            const frontWall = new THREE.GridHelper(wallSize, wallDivisions, 0x00ffff, 0x008888);
+            frontWall.rotation.x = Math.PI / 2; // Rotate to be vertical
+            frontWall.position.z = -wallSize / 2; // Position at the "back" of the room
+            frontWall.position.y = wallSize / 2; // Center vertically
+            frontWall.material = wallMaterial.clone();
+            wallGrids.add(frontWall);
+
+            // Back Wall (XZ plane, moved forward)
+            const backWall = new THREE.GridHelper(wallSize, wallDivisions, 0x00ffff, 0x008888);
+            backWall.rotation.x = Math.PI / 2; // Rotate to be vertical
+            backWall.position.z = wallSize / 2; // Position at the "front" of the room
+            backWall.position.y = wallSize / 2; // Center vertically
+            backWall.material = wallMaterial.clone();
+            wallGrids.add(backWall);
+
+            // Left Wall (YZ plane, moved right)
+            const leftWall = new THREE.GridHelper(wallSize, wallDivisions, 0x00ffff, 0x008888);
+            leftWall.rotation.z = Math.PI / 2; // Rotate to be vertical
+            leftWall.position.x = -wallSize / 2; // Position to the "left" of the room
+            leftWall.position.y = wallSize / 2; // Center vertically
+            leftWall.material = wallMaterial.clone();
+            wallGrids.add(leftWall);
+
+            // Right Wall (YZ plane, moved left)
+            const rightWall = new THREE.GridHelper(wallSize, wallDivisions, 0x00ffff, 0x008888);
+            rightWall.rotation.z = Math.PI / 2; // Rotate to be vertical
+            rightWall.position.x = wallSize / 2; // Position to the "right" of the room
+            rightWall.position.y = wallSize / 2; // Center vertically
+            rightWall.material = wallMaterial.clone();
+            wallGrids.add(rightWall);
+
+            // Ceiling Grid (XY plane, moved up)
+            const ceilingGrid = new THREE.GridHelper(floorSize, floorDivisions, 0x00ffff, 0x008888);
+            ceilingGrid.position.y = wallSize; // Position at the "top" of the room
+            ceilingGrid.material = floorMaterial.clone();
+            ceilingGrid.material.opacity = 0.2; // Slightly less opaque for ceiling
+            wallGrids.add(ceilingGrid);
+
+
+            scene.add(wallGrids);
+
+            // Stars removed as per request for an Earth-based environment
+            // stars = new THREE.Points(...);
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        // --- Device Orientation & Step Logic ---
+        const stepCountDisplay = document.getElementById('stepCount');
+        const messageDisplay = document.getElementById('messageDisplay');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const permissionButton = document.getElementById('permissionButton');
+
+        let trainingActive = false;
+        let steps = 0;
+
+        // Step detection variables (Peak/Trough method for beta tilt)
+        let currentPeakBeta = -Infinity;
+        let currentTroughBeta = Infinity;
+        let stepDirection = 'up'; // 'up' (looking for peak), 'down' (looking for trough)
+        const MIN_STEP_RANGE = 15; // Minimum degrees difference between peak and trough for a step
+        let lastStepTime = 0;
+        const STEP_COOLDOWN = 200; // Milliseconds to prevent rapid double-counting
+
+        // Modal elements
+        const infoModal = document.getElementById('infoModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalOkBtn = document.getElementById('modalOkBtn');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+
+        function showModal(title, message) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            infoModal.style.display = 'flex';
+        }
+
+        function hideModal() {
+            infoModal.style.display = 'none';
+        }
+
+        // Event listeners for modal
+        closeModalBtn.addEventListener('click', hideModal);
+        modalOkBtn.addEventListener('click', hideModal);
+        window.addEventListener('click', (event) => {
+            if (event.target === infoModal) {
+                hideModal();
+            }
+        });
+
+        // Function to handle device orientation data
+        function handleOrientation(event) {
+            // event.alpha: Z-axis (compass heading)
+            // event.beta: X-axis (front-to-back tilt, -180 to 180)
+            // event.gamma: Y-axis (left-to-right tilt, -90 to 90)
+
+            // Convert degrees to radians for Three.js
+            const degToRad = Math.PI / 180;
+            const alpha = event.alpha ? event.alpha * degToRad : 0;
+            const beta = event.beta ? event.beta * degToRad : 0;
+            const gamma = event.gamma ? event.gamma * degToRad : 0;
+
+            // Apply device orientation to the camera
+            // YXZ order is common for device orientation, negating alpha to match typical conventions
+            // This makes the camera rotate with the device, keeping the 3D world fixed relative to the real world.
+            // This is the "high precision" adjustment for orientation.
+            const euler = new THREE.Euler();
+            euler.set(beta, gamma, -alpha, 'YXZ');
+            camera.quaternion.setFromEuler(euler);
+
+            // --- Step Detection ---
+            if (trainingActive) {
+                const currentBeta = event.beta; // Use degrees for easier thresholding
+                const currentTime = Date.now();
+
+                if (stepDirection === 'up') {
+                    // Looking for a peak (forward tilt)
+                    if (currentBeta > currentPeakBeta) {
+                        currentPeakBeta = currentBeta;
+                    } else if (currentBeta < currentPeakBeta - 5 && currentPeakBeta > -Infinity) {
+                        // Beta started decreasing after a peak, potential peak found
+                        stepDirection = 'down';
+                        currentTroughBeta = currentBeta; // Start looking for trough from current beta
+                    }
+                } else if (stepDirection === 'down') {
+                    // Looking for a trough (backward tilt/return)
+                    if (currentBeta < currentTroughBeta) {
+                        currentTroughBeta = currentTroughBeta; // Keep updating trough
+                    } else if (currentBeta > currentTroughBeta + 5 && currentTroughBeta < Infinity) {
+                        // Beta started increasing after a trough, potential trough found
+                        if (currentPeakBeta - currentTroughBeta >= MIN_STEP_RANGE && (currentTime - lastStepTime > STEP_COOLDOWN)) {
+                            steps++;
+                            stepCountDisplay.textContent = `${steps}`;
+                            messageDisplay.textContent = `Step ${steps} completed! Engage!`;
+                            if (navigator.vibrate) {
+                                navigator.vibrate(50); // Vibrate for 50ms for feedback
+                            }
+                            lastStepTime = currentTime;
+                        } else if (currentTime - lastStepTime <= STEP_COOLDOWN) {
+                             messageDisplay.textContent = `Too fast! Wait for next sequence.`;
+                        } else {
+                            messageDisplay.textContent = `Movement too small. Range: ${(currentPeakBeta - currentTroughBeta).toFixed(1)}°`;
+                        }
+                        // Reset for next step
+                        stepDirection = 'up';
+                        currentPeakBeta = currentBeta; // Start looking for new peak from current beta
+                        currentTroughBeta = Infinity;
+                    }
+                }
+            }
+        }
+
+        // --- Permission Handling for Device Orientation ---
+        function requestDeviceOrientationPermission() {
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('deviceorientation', handleOrientation);
+                            permissionButton.style.display = 'none';
+                            messageDisplay.textContent = 'Sensor access granted. Ready to train!';
+                            startButton.style.display = 'block'; // Show start button
+                        } else {
+                            messageDisplay.textContent = 'Permission denied. Cannot track movement.';
+                            showModal('Permission Denied', 'Device orientation sensor access is required for this app to function. Please grant permission to start training.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error requesting device orientation permission:', error);
+                        messageDisplay.textContent = 'Error requesting sensor permission.';
+                        showModal('Error', 'An error occurred while requesting sensor permission. Please try again or check your device settings.');
+                    });
+            } else {
+                // For non-iOS 13+ devices, permission is not explicitly needed
+                window.addEventListener('deviceorientation', handleOrientation);
+                permissionButton.style.display = 'none'; // Hide button if not needed
+                messageDisplay.textContent = 'Sensors active. Ready to train!';
+                startButton.style.display = 'block'; // Show start button
+            }
+        }
+
+        // --- Training Control ---
+        startButton.addEventListener('click', () => {
+            if (!trainingActive) {
+                steps = 0;
+                stepCountDisplay.textContent = `${steps}`;
+                trainingActive = true;
+                startButton.style.display = 'none';
+                stopButton.style.display = 'block';
+                messageDisplay.textContent = 'TRAINING IN PROGRESS...';
+                // Reset step detection state
+                currentPeakBeta = -Infinity;
+                currentTroughBeta = Infinity;
+                stepDirection = 'up';
+                lastStepTime = 0;
+            }
+        });
+
+        stopButton.addEventListener('click', () => {
+            if (trainingActive) {
+                trainingActive = false;
+                startButton.style.display = 'block';
+                stopButton.style.display = 'none';
+                messageDisplay.textContent = `TRAINING COMPLETE! Total Steps: ${steps}`;
+            }
+        });
+
+        // --- Initialize on Window Load ---
+        window.onload = function() {
+            init3DScene();
+            animate(); // Start the 3D animation loop immediately
+
+            // Check if permission is needed for device orientation
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                permissionButton.style.display = 'block'; // Show permission button if required
+                startButton.style.display = 'none'; // Hide start button until permission is granted
+                messageDisplay.textContent = 'Tap "GRANT SENSOR PERMISSION" to begin.';
+            } else {
+                // No explicit permission needed, just start listening
+                window.addEventListener('deviceorientation', handleOrientation);
+                startButton.style.display = 'block'; // Show start button
+                messageDisplay.textContent = 'Sensors active. Ready to train!';
+            }
+
+            permissionButton.addEventListener('click', requestDeviceOrientationPermission);
+
+            // Show initial welcome message in modal
+            showModal('Welcome, Trainee!', 'Prepare for intensive low-impact, high-repetition training. Hold your phone firmly. The 3D grid will align with the real-world horizon. Perform quick, precise "flick" or "punch-like" movements with your phone to register **Steps**. Ensure your device orientation sensors are enabled.');
+        };
+    </script>
+</body>
+</html>
