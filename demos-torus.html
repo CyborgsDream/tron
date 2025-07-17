@@ -23,62 +23,62 @@
 <body>
   <canvas id="bg"></canvas>
 
-  <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
   <script>
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg'), antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    const canvas = document.getElementById('bg');
+    const ctx = canvas.getContext('2d');
 
-    camera.position.z = 5;
-
-    const geometry = new THREE.TorusGeometry(1, 0.3, 16, 60);
-    const material = new THREE.MeshStandardMaterial({ color: 0x00ffff, transparent: true });
-    material.onBeforeCompile = (shader) => {
-      shader.uniforms.fadeNear = { value: 4.5 };
-      shader.uniforms.fadeFar = { value: 6.5 };
-      shader.vertexShader = `varying float vFade;\n` + shader.vertexShader;
-      shader.vertexShader = shader.vertexShader.replace(
-        '#include <worldpos_vertex>',
-        `#include <worldpos_vertex>\n  vFade = length(worldPosition.xyz - cameraPosition);`
-      );
-      shader.fragmentShader = `varying float vFade;\nuniform float fadeNear;\nuniform float fadeFar;\n` + shader.fragmentShader;
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <output_fragment>',
-        `float fade = 1.0 - smoothstep(fadeNear, fadeFar, vFade);\n  gl_FragColor = vec4( outgoingLight, diffuseColor.a * fade );`
-      );
-    };
-    const torus = new THREE.Mesh(geometry, material);
-    scene.add(torus);
-
-    const pointLight = new THREE.PointLight(0xffffff, 1);
-    pointLight.position.set(5, 5, 5);
-    scene.add(pointLight);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.3));
-
-    function addStar() {
-      const geo = new THREE.SphereGeometry(0.02, 24, 24);
-      const mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-      const star = new THREE.Mesh(geo, mat);
-      const [x, y, z] = Array(3).map(() => THREE.MathUtils.randFloatSpread(50));
-      star.position.set(x, y, z);
-      scene.add(star);
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
     }
-    Array(200).fill().forEach(addStar);
+    resize();
+    window.addEventListener('resize', resize);
 
-    function animate() {
-      requestAnimationFrame(animate);
-      torus.rotation.x += 0.005;
-      torus.rotation.y += 0.01;
-      renderer.render(scene, camera);
+    let angleX = 0;
+    let angleY = 0;
+
+    function draw() {
+      ctx.fillStyle = '#111';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const R = 1;
+      const r = 0.3;
+      const tubeSeg = 60;
+      const radialSeg = 16;
+      const scale = Math.min(canvas.width, canvas.height) / 4;
+      for (let j = 0; j < radialSeg; j++) {
+        const v = j / radialSeg * 2 * Math.PI;
+        for (let i = 0; i < tubeSeg; i++) {
+          const u = i / tubeSeg * 2 * Math.PI;
+
+          let x = (R + r * Math.cos(v)) * Math.cos(u);
+          let y = (R + r * Math.cos(v)) * Math.sin(u);
+          let z = r * Math.sin(v);
+
+          // rotation X
+          let y1 = y * Math.cos(angleX) - z * Math.sin(angleX);
+          let z1 = y * Math.sin(angleX) + z * Math.cos(angleX);
+          let x1 = x;
+
+          // rotation Y
+          let x2 = x1 * Math.cos(angleY) + z1 * Math.sin(angleY);
+          let y2 = y1;
+          let z2 = -x1 * Math.sin(angleY) + z1 * Math.cos(angleY);
+
+          const f = 3 / (3 + z2);
+          const xScreen = canvas.width / 2 + scale * f * x2;
+          const yScreen = canvas.height / 2 + scale * f * y2;
+
+          ctx.fillStyle = '#0ff';
+          ctx.fillRect(xScreen, yScreen, 2, 2);
+        }
+      }
+
+      angleX += 0.02;
+      angleY += 0.01;
+      requestAnimationFrame(draw);
     }
-    animate();
 
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+    draw();
   </script>
 </body>
 </html>

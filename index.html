@@ -27,6 +27,22 @@
 </head>
 <body>
   <canvas id="screen" width="1280" height="720"></canvas>
+  <ul id="demo-list" style="position:absolute;top:20px;left:20px;list-style:none;padding:0;font-size:14px;"></ul>
+
+  <script id="demos-data" type="application/json">
+{
+  "files": [
+    "demos-torus.html",
+    "gemini.html",
+    "claude.html",
+    "deepseek.html",
+    "dev-gemini-cube3d.html",
+    "dev-claude-lines3d.html",
+    "dev-new.html"
+  ]
+}
+  </script>
+
   <script>
     const canvas = document.getElementById('screen');
     const ctx = canvas.getContext('2d');
@@ -43,9 +59,24 @@
       ctx.fillText('READY.', 40, 100);
     }
 
+    function populateList() {
+      const listEl = document.getElementById('demo-list');
+      const data = JSON.parse(document.getElementById('demos-data').textContent);
+      data.files.forEach(file => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = file;
+        a.textContent = file;
+        a.style.color = '#fff';
+        li.appendChild(a);
+        listEl.appendChild(li);
+      });
+    }
+
     function init() {
       drawBackground();
       drawText();
+      populateList();
     }
 
     init();
