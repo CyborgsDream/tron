@@ -18,6 +18,7 @@
     let scene,camera,renderer,wallGrids,verticalLines;
     let orientationBuffer=[];
     const ROOM_SIZE=50;
+    const GRID_SPACING=5;
     function initScene(){
       scene=new THREE.Scene();
       scene.background=new THREE.Color(0x000000);
@@ -55,12 +56,15 @@
     }
 
     function createVerticalLines(){
-      const gridSize=1,gridExtent=25,height=ROOM_SIZE;
+      const gridExtent=ROOM_SIZE/2;
+      const height=ROOM_SIZE;
+      const step=GRID_SPACING;
+      const offset=step/2;
       const vertices=[];
-      for(let x=-gridExtent;x<=gridExtent;x+=2){
-        for(let z=-gridExtent;z<=gridExtent;z+=2){
-          vertices.push(x*gridSize,0,z*gridSize);
-          vertices.push(x*gridSize,height,z*gridSize);
+      for(let x=-gridExtent+offset;x<=gridExtent;x+=step){
+        for(let z=-gridExtent+offset;z<=gridExtent;z+=step){
+          vertices.push(x,0,z);
+          vertices.push(x,height,z);
         }
       }
       const geo=new THREE.BufferGeometry();
@@ -93,9 +97,16 @@
       const alpha=smoothed.alpha*r;
       const beta=smoothed.beta*r;
       const gamma=smoothed.gamma*r;
+      const orient=window.orientation?THREE.MathUtils.degToRad(window.orientation):0;
       const euler=new THREE.Euler();
-      euler.set(beta,gamma,-alpha,'YXZ');
-      camera.quaternion.setFromEuler(euler);
+      const zee=new THREE.Vector3(0,0,1);
+      const q0=new THREE.Quaternion();
+      const q1=new THREE.Quaternion(-Math.sqrt(0.5),0,0,Math.sqrt(0.5));
+      euler.set(beta,alpha,-gamma,'YXZ');
+      const quaternion=new THREE.Quaternion().setFromEuler(euler);
+      quaternion.multiply(q1);
+      quaternion.multiply(q0.setFromAxisAngle(zee,-orient));
+      camera.quaternion.slerp(quaternion,0.5);
     }
 
     function requestPermission(){
