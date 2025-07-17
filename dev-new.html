@@ -17,6 +17,7 @@
   <script>
     let scene,camera,renderer,wallGrids,verticalLines;
     let orientationBuffer=[];
+    const ROOM_SIZE=50;
     function initScene(){
       scene=new THREE.Scene();
       scene.background=new THREE.Color(0x000000);
@@ -31,7 +32,7 @@
       light.position.set(0,5,0);
       scene.add(light);
 
-      const floorSize=50;
+      const floorSize=ROOM_SIZE;
       const floorDiv=50;
       const floorMat=new THREE.LineBasicMaterial({color:0x00ffff,opacity:0.4,transparent:true});
       const floorGrid=new THREE.GridHelper(floorSize,floorDiv,0x00ffff,0x008888);
@@ -39,7 +40,7 @@
       scene.add(floorGrid);
 
       wallGrids=new THREE.Group();
-      const wallSize=50;
+      const wallSize=ROOM_SIZE;
       const wallDiv=50;
       const wallMat=new THREE.LineBasicMaterial({color:0x00ffff,opacity:0.2,transparent:true});
       const front=new THREE.GridHelper(wallSize,wallDiv,0x00ffff,0x008888);front.rotation.x=Math.PI/2;front.position.z=-wallSize/2;front.position.y=wallSize/2;front.material=wallMat.clone();wallGrids.add(front);
@@ -54,18 +55,19 @@
     }
 
     function createVerticalLines(){
-      const gridSize=40,gridExtent=25,height=gridSize*10;
+      const gridSize=1,gridExtent=25,height=ROOM_SIZE;
       const vertices=[];
       for(let x=-gridExtent;x<=gridExtent;x+=2){
         for(let z=-gridExtent;z<=gridExtent;z+=2){
           vertices.push(x*gridSize,0,z*gridSize);
-          vertices.push(x*gridSize,-height,z*gridSize);
+          vertices.push(x*gridSize,height,z*gridSize);
         }
       }
       const geo=new THREE.BufferGeometry();
       geo.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
-      const mat=new THREE.LineBasicMaterial({color:0xff00ff,opacity:0.6,transparent:true});
+      const mat=new THREE.LineBasicMaterial({color:0xff00ff,opacity:0.6,transparent:true,depthWrite:false});
       verticalLines=new THREE.LineSegments(geo,mat);
+      verticalLines.renderOrder=1;
       scene.add(verticalLines);
     }
 
