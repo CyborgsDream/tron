@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRON Fitness Tracker Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #111;
+      color: #0ff;
+      font-family: 'Orbitron', sans-serif;
+    }
+    #bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    .dashboard {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      padding: 2rem 3rem;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+      box-shadow: 0 0 10px #0ff;
+      text-align: center;
+    }
+    .dashboard h1 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+    .dashboard a {
+      color: #0ff;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border: 1px solid #0ff;
+      border-radius: 4px;
+      transition: background 0.3s, color 0.3s;
+    }
+    .dashboard a small {
+      display: block;
+      font-size: 0.6rem;
+      margin-top: 0.25rem;
+    }
+    .dashboard a:hover {
+      background: #0ff;
+      color: #111;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg"></canvas>
+  <div class="dashboard">
+    <h1>Fitness Tracker Demos</h1>
+    <a href="gemini.html">Android Training Protocol v5<br><small>gemini.html</small></a>
+    <a href="claude.html">CyberFit &ndash; Train Like an Android<br><small>claude.html</small></a>
+    <a href="deepseek.html">NeoGrid Fitness &ndash; Precision Training<br><small>deepseek.html</small></a>
+    <a href="dev-gemini-cube3d.html">Gemini Cube 3D Demo<br><small>dev-gemini-cube3d.html</small></a>
+    <a href="dev-claude-lines3d.html">Claude Lines 3D Demo<br><small>dev-claude-lines3d.html</small></a>
+    <a href="dev-new.html">Combined Cube &amp; Lines Demo<br><small>dev-new.html</small></a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
+  <script>
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg'), antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    camera.position.z = 5;
+
+    const geometry = new THREE.TorusGeometry(1, 0.3, 16, 60);
+    const material = new THREE.MeshStandardMaterial({ color: 0x00ffff, wireframe: true });
+    const torus = new THREE.Mesh(geometry, material);
+    scene.add(torus);
+
+    const pointLight = new THREE.PointLight(0xffffff, 1);
+    pointLight.position.set(5, 5, 5);
+    scene.add(pointLight);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+
+    function addStar() {
+      const geo = new THREE.SphereGeometry(0.02, 24, 24);
+      const mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const star = new THREE.Mesh(geo, mat);
+      const [x, y, z] = Array(3).map(() => THREE.MathUtils.randFloatSpread(50));
+      star.position.set(x, y, z);
+      scene.add(star);
+    }
+    Array(200).fill().forEach(addStar);
+
+    function animate() {
+      requestAnimationFrame(animate);
+      torus.rotation.x += 0.005;
+      torus.rotation.y += 0.01;
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
