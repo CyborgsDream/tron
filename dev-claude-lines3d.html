@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Lines 3D</title>
+  <style>
+    body,html{margin:0;padding:0;overflow:hidden;background:#000;}
+    #canvas{display:block;width:100vw;height:100vh;}
+    #permissionBtn{position:absolute;top:20px;left:20px;padding:10px 20px;font-family:sans-serif;font-size:16px;}
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <button id="permissionBtn" style="display:none;">Enable Motion</button>
+  <script>
+    const canvas=document.getElementById('canvas');
+    const ctx=canvas.getContext('2d');
+    let deviceOrientation={alpha:0,beta:0,gamma:0};
+    let orientationBuffer=[];
+    function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+    window.addEventListener('resize',resize);resize();
+    function handleOrientation(e){
+      const raw={alpha:e.alpha||0,beta:e.beta||0,gamma:e.gamma||0};
+      orientationBuffer.push(raw);
+      if(orientationBuffer.length>5)orientationBuffer.shift();
+      let totalW=0,smoothed={alpha:0,beta:0,gamma:0};
+      for(let i=0;i<orientationBuffer.length;i++){
+        const w=(i+1)/orientationBuffer.length;totalW+=w;
+        smoothed.alpha+=orientationBuffer[i].alpha*w;
+        smoothed.beta+=orientationBuffer[i].beta*w;
+        smoothed.gamma+=orientationBuffer[i].gamma*w;
+      }
+      smoothed.alpha/=totalW;smoothed.beta/=totalW;smoothed.gamma/=totalW;
+      deviceOrientation=smoothed;
+    }
+    function project3D(x,y,z){
+      const r=Math.PI/180;
+      const roll=deviceOrientation.gamma*r;
+      const pitch=deviceOrientation.beta*r;
+      const yaw=deviceOrientation.alpha*r;
+      const cosR=Math.cos(roll),sinR=Math.sin(roll);
+      const cosP=Math.cos(pitch),sinP=Math.sin(pitch);
+      const cosY=Math.cos(yaw),sinY=Math.sin(yaw);
+      let tx=x*cosY - z*sinY; let ty=y; let tz=x*sinY + z*cosY;
+      x=tx; y=ty*cosP - tz*sinP; z=ty*sinP + tz*cosP;
+      tx=x*cosR - y*sinR; ty=x*sinR + y*cosR; tz=z;
+      const vd=800; const distance=Math.max(1,vd+tz); const scale=vd/distance;
+      return {x:tx*scale,y:ty*scale,z:tz};
+    }
+    function draw(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const centerX=canvas.width/2, centerY=canvas.height/2;
+      ctx.save();
+      ctx.translate(centerX,centerY);
+      const gridSize=40, gridExtent=25, height=gridSize*10;
+      ctx.strokeStyle='#ff00ff';
+      ctx.lineWidth=1;
+      for(let x=-gridExtent;x<=gridExtent;x+=2){
+        for(let z=-gridExtent;z<=gridExtent;z+=2){
+          const b=project3D(x*gridSize,0,z*gridSize);
+          const t=project3D(x*gridSize,-height,z*gridSize);
+          const avgZ=(b.z+t.z)/2; const alpha=Math.max(0.1,Math.min(0.6,1-Math.abs(avgZ)/1200));
+          if(alpha>0.15){
+            ctx.globalAlpha=alpha;
+            ctx.beginPath();
+            ctx.moveTo(b.x,b.y); ctx.lineTo(t.x,t.y); ctx.stroke();
+          }
+        }
+      }
+      ctx.restore();
+      requestAnimationFrame(draw);
+    }
+    function requestPermission(){
+      if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+        DeviceOrientationEvent.requestPermission().then(state=>{if(state==='granted'){window.addEventListener('deviceorientation',handleOrientation);document.getElementById('permissionBtn').style.display='none';}}).catch(console.error);
+      }
+    }
+    window.addEventListener('load',()=>{
+      draw();
+      const btn=document.getElementById('permissionBtn');
+      if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+        btn.style.display='block';
+        btn.addEventListener('click',requestPermission);
+      }else{
+        window.addEventListener('deviceorientation',handleOrientation);
+      }
+    });
+  </script>
+</body>
+</html>
