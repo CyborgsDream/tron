@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GROS 64 Clone</title>
+  <title>GEOS 64 Clone</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
     body {
@@ -39,13 +39,27 @@
     function drawText() {
       ctx.fillStyle = '#ffffff';
       ctx.font = '20px "Press Start 2P"';
-      ctx.fillText('*** GROS 64 BASIC V2 ***', 40, 60);
+      ctx.fillText('***** GEOS 64 BASIC V2 *****', 40, 60);
       ctx.fillText('READY.', 40, 100);
+    }
+
+    function drawWindow(x, y, w, h, title) {
+      ctx.fillStyle = '#000084';
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = '#24188f';
+      ctx.fillRect(x, y, w, 24);
+      ctx.strokeStyle = '#ffffff';
+      ctx.strokeRect(x, y, w, h);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '16px "Press Start 2P"';
+      ctx.fillText(title, x + 8, y + 18);
     }
 
     function init() {
       drawBackground();
       drawText();
+      drawWindow(80, 140, 360, 240, 'File');
+      drawWindow(480, 200, 360, 240, 'Info');
     }
 
     init();
