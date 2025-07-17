@@ -33,7 +33,21 @@
     camera.position.z = 5;
 
     const geometry = new THREE.TorusGeometry(1, 0.3, 16, 60);
-    const material = new THREE.MeshStandardMaterial({ color: 0x00ffff, wireframe: true });
+    const material = new THREE.MeshStandardMaterial({ color: 0x00ffff, transparent: true });
+    material.onBeforeCompile = (shader) => {
+      shader.uniforms.fadeNear = { value: 4.5 };
+      shader.uniforms.fadeFar = { value: 6.5 };
+      shader.vertexShader = `varying float vFade;\n` + shader.vertexShader;
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <worldpos_vertex>',
+        `#include <worldpos_vertex>\n  vFade = length(worldPosition.xyz - cameraPosition);`
+      );
+      shader.fragmentShader = `varying float vFade;\nuniform float fadeNear;\nuniform float fadeFar;\n` + shader.fragmentShader;
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <output_fragment>',
+        `float fade = 1.0 - smoothstep(fadeNear, fadeFar, vFade);\n  gl_FragColor = vec4( outgoingLight, diffuseColor.a * fade );`
+      );
+    };
     const torus = new THREE.Mesh(geometry, material);
     scene.add(torus);
 
