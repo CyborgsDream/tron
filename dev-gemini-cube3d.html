@@ -29,8 +29,8 @@
       light.position.set(0,5,0);
       scene.add(light);
       const floorSize=50;const floorDiv=50;
-      const floorMat=new THREE.LineBasicMaterial({color:0x00ffff,opacity:0.4,transparent:true});
-      const floorGrid=new THREE.GridHelper(floorSize,floorDiv,0x00ffff,0x008888);floorGrid.material=floorMat;scene.add(floorGrid);
+      const floorMat=new THREE.LineBasicMaterial({color:0xff8800,opacity:0.4,transparent:true});
+      const floorGrid=new THREE.GridHelper(floorSize,floorDiv,0xff8800,0x884400);floorGrid.material=floorMat;scene.add(floorGrid);
       wallGrids=new THREE.Group();
       const wallSize=50;const wallDiv=50;const wallMat=new THREE.LineBasicMaterial({color:0x00ffff,opacity:0.2,transparent:true});
       const front=new THREE.GridHelper(wallSize,wallDiv,0x00ffff,0x008888);front.rotation.x=Math.PI/2;front.position.z=-wallSize/2;front.position.y=wallSize/2;front.material=wallMat.clone();wallGrids.add(front);
