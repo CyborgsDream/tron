@@ -25,6 +25,8 @@
     const labelData=[];
     const drops=[];
     const DROP_COUNT=10;
+    const GRAVITY=0.01;
+    const BOUNCE_LOSS=0.6;
     let orientationOffsetQuat=new THREE.Quaternion();
     let lastQuat=new THREE.Quaternion();
     let offsetInitialized=false;
@@ -50,6 +52,11 @@
       const floorGrid=new THREE.GridHelper(floorSize,floorDiv,0xff8800,0x884400);
       floorGrid.material=floorMat;
       scene.add(floorGrid);
+
+      const raisedGrid=floorGrid.clone();
+      raisedGrid.material=floorMat.clone();
+      raisedGrid.position.y=GRID_SPACING;
+      scene.add(raisedGrid);
 
       wallGrids=new THREE.Group();
       const wallSize=ROOM_SIZE;
@@ -128,11 +135,13 @@
       labelData.push({pos:mesh.position,el:div});
     }
 
-    function resetDrop(mesh){
+    function resetDrop(drop){
+      const mesh=drop.mesh;
       mesh.position.x=THREE.MathUtils.randFloatSpread(ROOM_SIZE);
       mesh.position.z=THREE.MathUtils.randFloatSpread(ROOM_SIZE);
       mesh.position.y=Math.random()*10+10;
       mesh.material.color.setHex(0xffff00);
+      drop.velocity=0;
     }
 
     function createDrops(){
@@ -140,19 +149,23 @@
       for(let i=0;i<DROP_COUNT;i++){
         const mat=new THREE.MeshBasicMaterial({color:0xffff00});
         const mesh=new THREE.Mesh(geom,mat);
-        resetDrop(mesh);
+        const drop={mesh,velocity:0};
+        resetDrop(drop);
         scene.add(mesh);
-        drops.push(mesh);
+        drops.push(drop);
       }
     }
 
     function updateDrops(){
       drops.forEach(d=>{
-        if(d.position.y>0.1){
-          d.position.y-=0.1;
-        }else{
-          d.position.y=0.1;
-          d.material.color.setHex(0xff8800);
+        d.velocity-=GRAVITY;
+        d.mesh.position.y+=d.velocity;
+        if(d.mesh.position.y<=0.1){
+          d.mesh.position.y=0.1;
+          d.velocity=-d.velocity*BOUNCE_LOSS;
+          if(Math.abs(d.velocity)<0.02){
+            resetDrop(d);
+          }
         }
       });
     }
