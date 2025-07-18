@@ -72,7 +72,11 @@
       const back=new THREE.GridHelper(wallSize,wallDiv,0x00ffff,0x008888);back.rotation.x=Math.PI/2;back.position.z=wallSize/2;back.position.y=wallSize/2;back.material=wallMat.clone();wallGrids.add(back);
       const left=new THREE.GridHelper(wallSize,wallDiv,0x00ffff,0x008888);left.rotation.z=Math.PI/2;left.position.x=-wallSize/2;left.position.y=wallSize/2;left.material=wallMat.clone();wallGrids.add(left);
       const right=new THREE.GridHelper(wallSize,wallDiv,0x00ffff,0x008888);right.rotation.z=Math.PI/2;right.position.x=wallSize/2;right.position.y=wallSize/2;right.material=wallMat.clone();wallGrids.add(right);
-      const ceiling=new THREE.GridHelper(floorSize,floorDiv,0x00ffff,0x008888);ceiling.position.y=wallSize;ceiling.material=floorMat.clone();ceiling.material.opacity=0.2;wallGrids.add(ceiling);
+      const ceiling=new THREE.GridHelper(floorSize,floorDiv,0x00ffff,0x008888);
+      ceiling.position.y=wallSize;
+      ceiling.material=groundMat.clone();
+      ceiling.material.opacity=0.2;
+      wallGrids.add(ceiling);
       scene.add(wallGrids);
 
       createVerticalLines();
