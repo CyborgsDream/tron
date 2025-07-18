@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TRON Gemini Cube 3D</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="retro-gui.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     body,html{margin:0;padding:0;overflow:hidden;background:#000;}
@@ -47,5 +49,6 @@
     function animate(){requestAnimationFrame(animate);renderer.render(scene,camera);}
     window.addEventListener('load',()=>{initScene();animate();const btn=document.getElementById('permissionBtn');if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){btn.style.display='block';btn.addEventListener('click',requestPermission);}else{window.addEventListener('deviceorientation',handleOrientation);}});
   </script>
+  <script src="retro-gui.js"></script>
 </body>
 </html>
