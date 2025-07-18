@@ -3,130 +3,83 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TRON menu</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
+  <title>GROS 64 Clone</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
     body {
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #111;
-      color: #0ff;
-      font-family: 'Orbitron', sans-serif;
+      background:#4030A1;
+      color:#fff;
+      margin:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:100vh;
+      font-family:'Press Start 2P', monospace;
     }
-    #bg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-    }
-    .dashboard {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-      padding: 2rem 3rem;
-      border-radius: 8px;
-      background: rgba(255,255,255,0.05);
-      box-shadow: 0 0 10px #0ff;
-      text-align: center;
-    }
-    .dashboard h1 {
-      margin-top: 0;
-      margin-bottom: 1rem;
-      font-size: 1.5rem;
-    }
-    .dashboard a {
-      color: #0ff;
-      text-decoration: none;
-      padding: 0.5rem 1rem;
-      border: 1px solid #0ff;
-      border-radius: 4px;
-      transition: background 0.3s, color 0.3s;
-    }
-    .dashboard a small {
-      display: block;
-      font-size: 0.6rem;
-      margin-top: 0.25rem;
-    }
-    .dashboard a:hover {
-      background: #0ff;
-      color: #111;
-    }
-    #demo-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
+    #screen {
+      width:1280px;
+      height:720px;
+      image-rendering:pixelated;
+      border:20px solid #24188f;
+      box-sizing:content-box;
     }
   </style>
 </head>
 <body>
-  <canvas id="bg"></canvas>
-  <div class="dashboard">
-    <h1>TRON</h1>
-    <div id="demo-list"></div>
-  </div>
+  <canvas id="screen" width="1280" height="720"></canvas>
+  <ul id="demo-list" style="position:absolute;top:20px;left:20px;list-style:none;padding:0;font-size:14px;"></ul>
 
-  <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
+  <script id="demos-data" type="application/json">
+{
+  "files": [
+    "demos-torus.html",
+    "gemini.html",
+    "claude.html",
+    "deepseek.html",
+    "dev-gemini-cube3d.html",
+    "dev-claude-lines3d.html",
+    "dev-new.html"
+  ]
+}
+  </script>
+
   <script>
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg'), antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    const canvas = document.getElementById('screen');
+    const ctx = canvas.getContext('2d');
 
-    camera.position.z = 5;
-
-    const geometry = new THREE.TorusGeometry(1, 0.3, 16, 60);
-    const material = new THREE.MeshStandardMaterial({ color: 0x00ffff, wireframe: true });
-    const torus = new THREE.Mesh(geometry, material);
-    scene.add(torus);
-
-    const pointLight = new THREE.PointLight(0xffffff, 1);
-    pointLight.position.set(5, 5, 5);
-    scene.add(pointLight);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.3));
-
-    function addStar() {
-      const geo = new THREE.SphereGeometry(0.02, 24, 24);
-      const mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-      const star = new THREE.Mesh(geo, mat);
-      const [x, y, z] = Array(3).map(() => THREE.MathUtils.randFloatSpread(50));
-      star.position.set(x, y, z);
-      scene.add(star);
+    function drawBackground() {
+      ctx.fillStyle = '#4030A1';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
-    Array(200).fill().forEach(addStar);
 
-    function animate() {
-      requestAnimationFrame(animate);
-      torus.rotation.x += 0.005;
-      torus.rotation.y += 0.01;
-      renderer.render(scene, camera);
+    function drawText() {
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '20px "Press Start 2P"';
+      ctx.fillText('*** GROS 64 BASIC V2 ***', 40, 60);
+      ctx.fillText('READY.', 40, 100);
     }
-    animate();
 
-    fetch('demos.json')
-      .then(r => r.json())
-      .then(data => {
-        const list = document.getElementById('demo-list');
-        data.files.forEach(f => {
-          if (f === 'index.html') return;
-          const a = document.createElement('a');
-          a.href = f;
-          a.textContent = f;
-          list.appendChild(a);
-        });
-      })
-      .catch(console.error);
+    function populateList() {
+      const listEl = document.getElementById('demo-list');
+      const data = JSON.parse(document.getElementById('demos-data').textContent);
+      data.files.forEach(file => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = file;
+        a.textContent = file;
+        a.style.color = '#fff';
+        li.appendChild(a);
+        listEl.appendChild(li);
+      });
+    }
 
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+    function init() {
+      drawBackground();
+      drawText();
+      populateList();
+    }
+
+    init();
   </script>
 </body>
 </html>
