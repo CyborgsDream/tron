@@ -23,6 +23,8 @@
   <script>
     let scene,camera,renderer,wallGrids,verticalLines;
     const labelData=[];
+    const drops=[];
+    const DROP_COUNT=10;
     let orientationOffsetQuat=new THREE.Quaternion();
     let lastQuat=new THREE.Quaternion();
     let offsetInitialized=false;
@@ -65,6 +67,7 @@
       addPointWithLabel({x:0,y:1,z:0},'Origin');
       addPointWithLabel({x:5,y:1,z:5},'Alpha');
       addPointWithLabel({x:-5,y:1,z:-5},'Beta');
+      createDrops();
       updateLabels();
       window.addEventListener('resize',onResize);
     }
@@ -123,6 +126,35 @@
       div.textContent=text;
       document.getElementById('labels').appendChild(div);
       labelData.push({pos:mesh.position,el:div});
+    }
+
+    function resetDrop(mesh){
+      mesh.position.x=THREE.MathUtils.randFloatSpread(ROOM_SIZE);
+      mesh.position.z=THREE.MathUtils.randFloatSpread(ROOM_SIZE);
+      mesh.position.y=Math.random()*10+10;
+      mesh.material.color.setHex(0xffff00);
+    }
+
+    function createDrops(){
+      const geom=new THREE.SphereGeometry(0.1,8,8);
+      for(let i=0;i<DROP_COUNT;i++){
+        const mat=new THREE.MeshBasicMaterial({color:0xffff00});
+        const mesh=new THREE.Mesh(geom,mat);
+        resetDrop(mesh);
+        scene.add(mesh);
+        drops.push(mesh);
+      }
+    }
+
+    function updateDrops(){
+      drops.forEach(d=>{
+        if(d.position.y>0.1){
+          d.position.y-=0.1;
+        }else{
+          d.position.y=0.1;
+          d.material.color.setHex(0xff8800);
+        }
+      });
     }
 
     function updateLabels(){
@@ -187,6 +219,7 @@
 
     function animate(){
       requestAnimationFrame(animate);
+      updateDrops();
       updateStats();
       updateLabels();
       renderer.render(scene,camera);
