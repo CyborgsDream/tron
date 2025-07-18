@@ -27,8 +27,6 @@
     const explosions=[];
     const DROP_COUNT=30;
     const GRAVITY=0.01;
-    const BOUNCE_LOSS=0.6;
-    const EXPLOSION_PARTICLES=20;
     const EXPLOSION_LIFETIME=60;
     let orientationOffsetQuat=new THREE.Quaternion();
     let lastQuat=new THREE.Quaternion();
@@ -160,33 +158,23 @@
     }
 
     function createExplosion(position){
-      const group=new THREE.Group();
-      const geom=new THREE.SphereGeometry(0.05,4,4);
-      for(let i=0;i<EXPLOSION_PARTICLES;i++){
-        const mat=new THREE.MeshBasicMaterial({color:0xff6600});
-        const m=new THREE.Mesh(geom,mat);
-        m.position.copy(position);
-        m.userData.velocity=new THREE.Vector3(
-          THREE.MathUtils.randFloatSpread(0.5),
-          Math.random()*0.5,
-          THREE.MathUtils.randFloatSpread(0.5)
-        );
-        group.add(m);
-      }
-      scene.add(group);
-      explosions.push({group,life:0});
+      const geom=new THREE.RingGeometry(0.1,0.12,32);
+      const mat=new THREE.MeshBasicMaterial({color:0xff6600,transparent:true,opacity:0.8,side:THREE.DoubleSide});
+      const ring=new THREE.Mesh(geom,mat);
+      ring.rotation.x=-Math.PI/2; // lay flat on the ground
+      ring.position.copy(position);
+      scene.add(ring);
+      explosions.push({mesh:ring,life:0});
     }
 
     function updateExplosions(){
       for(let i=explosions.length-1;i>=0;i--){
         const e=explosions[i];
-        e.group.children.forEach(p=>{
-          p.position.add(p.userData.velocity);
-          p.userData.velocity.y-=GRAVITY*2;
-        });
+        e.mesh.scale.multiplyScalar(1.05);
+        e.mesh.material.opacity*=0.95;
         e.life++;
-        if(e.life>EXPLOSION_LIFETIME){
-          scene.remove(e.group);
+        if(e.life>EXPLOSION_LIFETIME||e.mesh.material.opacity<0.02){
+          scene.remove(e.mesh);
           explosions.splice(i,1);
         }
       }
@@ -199,10 +187,7 @@
         if(d.mesh.position.y<=0.1){
           d.mesh.position.y=0.1;
           createExplosion(d.mesh.position.clone());
-          d.velocity=-d.velocity*BOUNCE_LOSS;
-          if(Math.abs(d.velocity)<0.02){
-            resetDrop(d);
-          }
+          resetDrop(d);
         }
       });
     }
