@@ -448,7 +448,8 @@
                 } else if (stepDirection === 'down') {
                     // Looking for a trough (backward tilt/return)
                     if (currentBeta < currentTroughBeta) {
-                        currentTroughBeta = currentTroughBeta; // Keep updating trough
+                        // Update the lowest beta value reached during the current cycle
+                        currentTroughBeta = currentBeta;
                     } else if (currentBeta > currentTroughBeta + 5 && currentTroughBeta < Infinity) {
                         // Beta started increasing after a trough, potential trough found
                         if (currentPeakBeta - currentTroughBeta >= MIN_STEP_RANGE && (currentTime - lastStepTime > STEP_COOLDOWN)) {
