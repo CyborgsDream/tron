@@ -15,7 +15,8 @@
 </head>
 <body>
   <canvas id="cubeCanvas"></canvas>
-  <button id="permissionBtn" style="display:none;">Enable Motion</button>
+  <div id="stats" style="position:absolute;top:10px;right:10px;color:#0f0;font-family:monospace;font-size:14px;z-index:1000;background:rgba(0,0,0,0.5);padding:4px;"></div>
+  <button id="permissionBtn" style="position:absolute;top:20px;left:20px;padding:10px 20px;font-family:sans-serif;font-size:16px;display:none;">Enable Motion</button>
   <script>
     let scene,camera,renderer,wallGrids;
     function initScene(){
@@ -46,7 +47,19 @@
     function onResize(){camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);}
     function handleOrientation(e){const r=Math.PI/180;const alpha=e.alpha?e.alpha*r:0;const beta=e.beta?e.beta*r:0;const gamma=e.gamma?e.gamma*r:0;const euler=new THREE.Euler();euler.set(beta,gamma,-alpha,'YXZ');camera.quaternion.setFromEuler(euler);}
     function requestPermission(){if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){DeviceOrientationEvent.requestPermission().then(state=>{if(state==='granted'){window.addEventListener('deviceorientation',handleOrientation);document.getElementById('permissionBtn').style.display='none';}}).catch(console.error);}}
-    function animate(){requestAnimationFrame(animate);renderer.render(scene,camera);}
+    function animate(){requestAnimationFrame(animate);updateStats();renderer.render(scene,camera);}
+
+    function updateStats(){
+      const stats=document.getElementById('stats');
+      const euler=new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ');
+      const yaw=(THREE.MathUtils.radToDeg(euler.y)).toFixed(1);
+      const pitch=(THREE.MathUtils.radToDeg(euler.x)).toFixed(1);
+      const roll=(THREE.MathUtils.radToDeg(euler.z)).toFixed(1);
+      const pos=camera.position;
+      stats.textContent=
+        `pos: ${pos.x.toFixed(2)},${pos.y.toFixed(2)},${pos.z.toFixed(2)}\n`+
+        `rot: ${pitch},${yaw},${roll}`;
+    }
     window.addEventListener('load',()=>{initScene();animate();const btn=document.getElementById('permissionBtn');if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){btn.style.display='block';btn.addEventListener('click',requestPermission);}else{window.addEventListener('deviceorientation',handleOrientation);}});
   </script>
   <script src="retro-gui.js"></script>

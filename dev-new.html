@@ -15,8 +15,9 @@
 </head>
 <body>
   <canvas id="sceneCanvas"></canvas>
-  <button id="permissionBtn" style="display:none;">Enable Motion</button>
-  <button id="calibrateBtn" style="display:none;top:60px;left:20px;position:absolute;padding:10px 20px;font-family:sans-serif;font-size:16px;">Calibrate</button>
+  <div id="stats" style="position:absolute;top:10px;right:10px;color:#0f0;font-family:monospace;font-size:14px;z-index:1000;background:rgba(0,0,0,0.5);padding:4px;"></div>
+  <button id="permissionBtn" style="position:absolute;top:20px;left:20px;padding:10px 20px;font-family:sans-serif;font-size:16px;display:none;">Enable Motion</button>
+  <button id="calibrateBtn" style="position:absolute;top:60px;left:20px;padding:10px 20px;font-family:sans-serif;font-size:16px;display:none;">Calibrate</button>
   <script>
     let scene,camera,renderer,wallGrids,verticalLines;
     let orientationOffsetQuat=new THREE.Quaternion();
@@ -149,7 +150,20 @@
 
     function animate(){
       requestAnimationFrame(animate);
+      updateStats();
       renderer.render(scene,camera);
+    }
+
+    function updateStats(){
+      const stats=document.getElementById('stats');
+      const euler=new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ');
+      const yaw=(THREE.MathUtils.radToDeg(euler.y)).toFixed(1);
+      const pitch=(THREE.MathUtils.radToDeg(euler.x)).toFixed(1);
+      const roll=(THREE.MathUtils.radToDeg(euler.z)).toFixed(1);
+      const pos=camera.position;
+      stats.textContent=
+        `pos: ${pos.x.toFixed(2)},${pos.y.toFixed(2)},${pos.z.toFixed(2)}\n`+
+        `rot: ${pitch},${yaw},${roll}`;
     }
 
     window.addEventListener('load',()=>{
