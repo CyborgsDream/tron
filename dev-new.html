@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TRON Combined 3D Demo</title>
+  <title>TRON dev-new v010</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="retro-gui.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -27,7 +27,7 @@
     let lastQuat=new THREE.Quaternion();
     let offsetInitialized=false;
     const ROOM_SIZE=30;
-    const GRID_SPACING=10;
+    const GRID_SPACING=5;
     function initScene(){
       scene=new THREE.Scene();
       scene.background=new THREE.Color(0x000000);
@@ -43,7 +43,7 @@
       scene.add(light);
 
       const floorSize=ROOM_SIZE;
-      const floorDiv=30;
+      const floorDiv=60;
       const floorMat=new THREE.LineBasicMaterial({color:0xff8800,opacity:0.4,transparent:true});
       const floorGrid=new THREE.GridHelper(floorSize,floorDiv,0xff8800,0x884400);
       floorGrid.material=floorMat;
@@ -51,7 +51,7 @@
 
       wallGrids=new THREE.Group();
       const wallSize=ROOM_SIZE;
-      const wallDiv=30;
+      const wallDiv=60;
       const wallMat=new THREE.LineBasicMaterial({color:0x00ffff,opacity:0.2,transparent:true});
       const front=new THREE.GridHelper(wallSize,wallDiv,0x00ffff,0x008888);front.rotation.x=Math.PI/2;front.position.z=-wallSize/2;front.position.y=wallSize/2;front.material=wallMat.clone();wallGrids.add(front);
       const back=new THREE.GridHelper(wallSize,wallDiv,0x00ffff,0x008888);back.rotation.x=Math.PI/2;back.position.z=wallSize/2;back.position.y=wallSize/2;back.material=wallMat.clone();wallGrids.add(back);
