@@ -21,13 +21,14 @@
   <button id="permissionBtn" style="position:absolute;top:20px;left:20px;padding:10px 20px;font-family:sans-serif;font-size:16px;display:none;">Enable Motion</button>
   <button id="calibrateBtn" style="position:absolute;top:60px;left:20px;padding:10px 20px;font-family:sans-serif;font-size:16px;display:none;">Calibrate</button>
   <script>
-    let scene,camera,renderer,wallGrids,verticalLines;
+    let scene,camera,renderer,wallGrids,verticalLines,groundMesh,raisedGrid;
     const labelData=[];
     const drops=[];
     const explosions=[];
+    const waves=[];
     const DROP_COUNT=30;
-      const GRAVITY=0.002; // slower drop acceleration
-    const EXPLOSION_LIFETIME=60;
+    const GRAVITY=0.001; // slower drop acceleration
+    const EXPLOSION_LIFETIME=80;
     let orientationOffsetQuat=new THREE.Quaternion();
     let lastQuat=new THREE.Quaternion();
     let offsetInitialized=false;
@@ -49,15 +50,19 @@
 
       const floorSize=ROOM_SIZE;
       const floorDiv=60;
-      const floorMat=new THREE.LineBasicMaterial({color:0xff8800,opacity:0.4,transparent:true});
-      const floorGrid=new THREE.GridHelper(floorSize,floorDiv,0xff8800,0x884400);
-      floorGrid.material=floorMat;
-      scene.add(floorGrid);
+      const groundGeo=new THREE.PlaneGeometry(floorSize,floorSize,floorDiv,floorDiv);
+      groundGeo.rotateX(-Math.PI/2);
+      const groundMat=new THREE.MeshBasicMaterial({color:0xff8800,opacity:0.4,transparent:true,wireframe:true});
+      groundMesh=new THREE.Mesh(groundGeo,groundMat);
+      scene.add(groundMesh);
 
-      const raisedGrid=floorGrid.clone();
-      raisedGrid.material=floorMat.clone();
+      const raisedGeo=groundGeo.clone();
+      const raisedMat=groundMat.clone();
+      raisedGrid=new THREE.Mesh(raisedGeo,raisedMat);
       raisedGrid.position.y=GRID_SPACING;
       scene.add(raisedGrid);
+      groundGeo.userData.original=groundGeo.attributes.position.array.slice();
+      raisedGeo.userData.original=raisedGeo.attributes.position.array.slice();
 
       wallGrids=new THREE.Group();
       const wallSize=ROOM_SIZE;
@@ -158,11 +163,12 @@
     }
 
     function createExplosion(position){
+      waves.push({pos:position.clone(),time:0});
       for(let i=0;i<3;i++){
-        const geom=new THREE.RingGeometry(0.1+i*0.05,0.12+i*0.05,32);
-        const mat=new THREE.MeshBasicMaterial({color:0xffa500,transparent:true,opacity:0.8,side:THREE.DoubleSide}); // bright orange
+        const geom=new THREE.RingGeometry(0.2+i*0.1,0.25+i*0.1,64);
+        const mat=new THREE.MeshBasicMaterial({color:0xff4500,transparent:true,opacity:1,side:THREE.DoubleSide});
         const ring=new THREE.Mesh(geom,mat);
-        ring.rotation.x=-Math.PI/2; // lay flat on the ground
+        ring.rotation.x=-Math.PI/2;
         ring.position.copy(position);
         scene.add(ring);
         explosions.push({mesh:ring,life:0});
@@ -172,13 +178,41 @@
     function updateExplosions(){
       for(let i=explosions.length-1;i>=0;i--){
         const e=explosions[i];
-        e.mesh.scale.multiplyScalar(1.05);
-        e.mesh.material.opacity*=0.95;
+        e.mesh.scale.multiplyScalar(1.08);
+        e.mesh.material.opacity*=0.97;
         e.life++;
         if(e.life>EXPLOSION_LIFETIME||e.mesh.material.opacity<0.02){
           scene.remove(e.mesh);
           explosions.splice(i,1);
         }
+      }
+    }
+
+    function updateWaves(){
+      const apply=(mesh)=>{
+        if(!mesh) return;
+        const pos=mesh.geometry.attributes.position;
+        const orig=mesh.geometry.userData.original;
+        const arr=pos.array;
+        for(let i=0;i<arr.length;i+=3){
+          arr[i+1]=orig[i+1];
+        }
+        for(const w of waves){
+          for(let i=0;i<arr.length;i+=3){
+            const dx=arr[i]-w.pos.x;
+            const dz=arr[i+2]-w.pos.z;
+            const dist=Math.sqrt(dx*dx+dz*dz);
+            const height=Math.sin(dist*4-w.time)*0.2/(1+dist*2);
+            arr[i+1]+=height;
+          }
+        }
+        pos.needsUpdate=true;
+      };
+      waves.forEach(w=>{w.time+=0.2;});
+      apply(groundMesh);
+      apply(raisedGrid);
+      for(let i=waves.length-1;i>=0;i--){
+        if(waves[i].time>20) waves.splice(i,1);
       }
     }
 
@@ -258,6 +292,7 @@
         requestAnimationFrame(animate);
         updateDrops();
         updateExplosions();
+        updateWaves();
         updateStats();
         updateLabels();
         renderer.render(scene,camera);
