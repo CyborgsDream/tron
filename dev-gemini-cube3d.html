@@ -11,14 +11,40 @@
     body,html{margin:0;padding:0;overflow:hidden;background:#000;}
     #cubeCanvas{display:block;width:100vw;height:100vh;}
     #permissionBtn{position:absolute;top:20px;left:20px;padding:10px 20px;font-family:sans-serif;font-size:16px;}
-  </style>
+    .label{position:absolute;color:#fff;font-family:sans-serif;font-size:14px;background:rgba(0,0,0,0.5);padding:2px 4px;border-radius:3px;white-space:nowrap;pointer-events:none;}
+ </style>
 </head>
 <body>
   <canvas id="cubeCanvas"></canvas>
+  <div id="labels" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;"></div>
   <div id="stats" style="position:absolute;top:10px;right:10px;color:#0f0;font-family:monospace;font-size:14px;z-index:1000;background:rgba(0,0,0,0.5);padding:4px;"></div>
   <button id="permissionBtn" style="position:absolute;top:20px;left:20px;padding:10px 20px;font-family:sans-serif;font-size:16px;display:none;">Enable Motion</button>
   <script>
     let scene,camera,renderer,wallGrids;
+    const labelData=[];
+
+    function addLabelPoint(pos,text){
+      const div=document.createElement('div');
+      div.className='label';
+      div.textContent=text;
+      document.getElementById('labels').appendChild(div);
+      labelData.push({pos:new THREE.Vector3(pos.x,pos.y,pos.z),el:div});
+    }
+
+    function updateLabels(){
+      const width=window.innerWidth;
+      const height=window.innerHeight;
+      labelData.forEach(o=>{
+        const p=o.pos.clone().project(camera);
+        const visible=p.z>-1&&p.z<1;
+        o.el.style.display=visible?'block':'none';
+        if(visible){
+          const x=(p.x*0.5+0.5)*width;
+          const y=(-p.y*0.5+0.5)*height;
+          o.el.style.transform=`translate(-50%,-50%) translate(${x}px,${y}px)`;
+        }
+      });
+    }
     function initScene(){
       scene=new THREE.Scene();
       scene.background=new THREE.Color(0x000000);
@@ -42,12 +68,27 @@
       const right=new THREE.GridHelper(wallSize,wallDiv,0x00ffff,0x008888);right.rotation.z=Math.PI/2;right.position.x=wallSize/2;right.position.y=wallSize/2;right.material=wallMat.clone();wallGrids.add(right);
       const ceiling=new THREE.GridHelper(floorSize,floorDiv,0x00ffff,0x008888);ceiling.position.y=wallSize;ceiling.material=floorMat.clone();ceiling.material.opacity=0.2;wallGrids.add(ceiling);
       scene.add(wallGrids);
+
+      addLabelPoint({x:0,y:1,z:0},'Center');
+      addLabelPoint({x:5,y:1,z:0},'Point A');
+      addLabelPoint({x:-5,y:1,z:0},'Point B');
+
       window.addEventListener('resize',onResize);
     }
-    function onResize(){camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);}
+    function onResize(){
+      camera.aspect=window.innerWidth/window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth,window.innerHeight);
+      updateLabels();
+    }
     function handleOrientation(e){const r=Math.PI/180;const alpha=e.alpha?e.alpha*r:0;const beta=e.beta?e.beta*r:0;const gamma=e.gamma?e.gamma*r:0;const euler=new THREE.Euler();euler.set(beta,gamma,-alpha,'YXZ');camera.quaternion.setFromEuler(euler);}
     function requestPermission(){if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){DeviceOrientationEvent.requestPermission().then(state=>{if(state==='granted'){window.addEventListener('deviceorientation',handleOrientation);document.getElementById('permissionBtn').style.display='none';}}).catch(console.error);}}
-    function animate(){requestAnimationFrame(animate);updateStats();renderer.render(scene,camera);}
+    function animate(){
+      requestAnimationFrame(animate);
+      updateStats();
+      updateLabels();
+      renderer.render(scene,camera);
+    }
 
     function updateStats(){
       const stats=document.getElementById('stats');
