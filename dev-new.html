@@ -26,7 +26,7 @@
     const drops=[];
     const explosions=[];
     const DROP_COUNT=30;
-    const GRAVITY=0.004;
+      const GRAVITY=0.002; // slower drop acceleration
     const EXPLOSION_LIFETIME=60;
     let orientationOffsetQuat=new THREE.Quaternion();
     let lastQuat=new THREE.Quaternion();
@@ -160,7 +160,7 @@
     function createExplosion(position){
       for(let i=0;i<3;i++){
         const geom=new THREE.RingGeometry(0.1+i*0.05,0.12+i*0.05,32);
-        const mat=new THREE.MeshBasicMaterial({color:0xff8800,transparent:true,opacity:0.8,side:THREE.DoubleSide});
+        const mat=new THREE.MeshBasicMaterial({color:0xffa500,transparent:true,opacity:0.8,side:THREE.DoubleSide}); // bright orange
         const ring=new THREE.Mesh(geom,mat);
         ring.rotation.x=-Math.PI/2; // lay flat on the ground
         ring.position.copy(position);
