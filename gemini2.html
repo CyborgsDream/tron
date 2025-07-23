@@ -48,22 +48,30 @@
             z-index: 2; /* Above UI */
         }
 
-        /* UI Container */
-        .ui-container {
-            position: relative;
-            z-index: 1; /* Above canvas */
+        /* Top heads-up display */
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 15px; /* Smaller padding */
-            background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent overlay */
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5); /* Neon glow */
-            border: 1px solid #00ffff;
-            max-width: 90%;
-            width: 380px; /* Adjusted width */
-            box-sizing: border-box;
+            z-index: 1; /* Above canvas */
+            pointer-events: none;
+        }
+
+        /* Bottom controls */
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            z-index: 1;
         }
 
         /* Text elements */
@@ -222,9 +230,11 @@
                 padding: 10px 20px;
                 font-size: 0.9em;
             }
-            .ui-container {
+            #hud {
                 padding: 10px;
-                width: 95%; /* Wider on small screens */
+            }
+            #controls {
+                padding: 10px 0;
             }
             .modal-content {
                 padding: 15px;
@@ -244,19 +254,20 @@
     <canvas id="trainingCanvas"></canvas>
     <canvas id="mannequinCanvas"></canvas>
 
-    <!-- UI Container -->
-    <div class="ui-container">
+    <!-- Heads-up display -->
+    <div id="hud">
         <h1>ANDROID TRAINING PROTOCOL</h1>
-
         <div class="stats-container">
             <div class="stat-item">
                 <div>STEPS</div>
                 <div id="stepCount">0</div>
             </div>
         </div>
-
         <p id="messageDisplay">Tap START to begin your training.</p>
+    </div>
 
+    <!-- Control buttons -->
+    <div id="controls">
         <button id="startButton" class="btn">START TRAINING</button>
         <button id="stopButton" class="btn btn-stop" style="display: none;">STOP TRAINING</button>
         <button id="permissionButton" class="btn" style="display: none;">GRANT SENSOR PERMISSION</button>
