@@ -388,7 +388,8 @@
             const canvas = document.getElementById('mannequinCanvas');
             mannequinScene = new THREE.Scene();
             mannequinCamera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
-            mannequinCamera.position.z = 2;
+            mannequinCamera.position.set(0, 1, 2); // Lift camera so mannequin appears centered
+            mannequinCamera.lookAt(0, 1, 0);
             mannequinRenderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
             mannequinRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
             mannequinRenderer.setPixelRatio(window.devicePixelRatio);
