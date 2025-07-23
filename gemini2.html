@@ -6,6 +6,7 @@
     <title>TRON Android Training Protocol v5</title>
     <!-- Three.js CDN for 3D rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/loaders/GLTFLoader.js"></script>
     <!-- Google Fonts - Orbitron for sci-fi look -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -412,70 +413,24 @@
         }
 
         function createMannequin() {
-            mannequin = new THREE.Group();
-            const mat = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.1, roughness: 0.7 });
-
-            const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 1.2, 16), mat);
-            torso.position.y = 1.4;
-            mannequin.add(torso);
-            const chest = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 16), mat);
-            chest.position.y = 2.0;
-            mannequin.add(chest);
-
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.23, 32, 32), mat);
-            head.position.y = 2.2;
-            mannequin.add(head);
-
-            leftArm = new THREE.Group();
-            const upperArmGeom = new THREE.CylinderGeometry(0.07, 0.07, 0.6, 16);
-            const lowerArmGeom = new THREE.CylinderGeometry(0.06, 0.06, 0.5, 16);
-            const leftUpper = new THREE.Mesh(upperArmGeom, mat);
-            leftUpper.position.y = -0.3;
-            leftUpper.rotation.z = Math.PI / 2;
-            leftArm.add(leftUpper);
-            const leftLower = new THREE.Mesh(lowerArmGeom, mat);
-            leftLower.position.y = -0.8;
-            leftLower.rotation.z = Math.PI / 2;
-            leftArm.add(leftLower);
-            leftArm.position.set(-0.4, 1.8, 0);
-            mannequin.add(leftArm);
-
-            rightArm = new THREE.Group();
-            const rightUpper = new THREE.Mesh(upperArmGeom.clone(), mat);
-            rightUpper.position.y = -0.3;
-            rightUpper.rotation.z = Math.PI / 2;
-            rightArm.add(rightUpper);
-            const rightLower = new THREE.Mesh(lowerArmGeom.clone(), mat);
-            rightLower.position.y = -0.8;
-            rightLower.rotation.z = Math.PI / 2;
-            rightArm.add(rightLower);
-            rightArm.position.set(0.4, 1.8, 0);
-            mannequin.add(rightArm);
-
-            const upperLegGeom = new THREE.CylinderGeometry(0.09, 0.09, 0.8, 16);
-            const lowerLegGeom = new THREE.CylinderGeometry(0.08, 0.08, 0.8, 16);
-
-            const leftLeg = new THREE.Group();
-            const leftUpperLeg = new THREE.Mesh(upperLegGeom, mat);
-            leftUpperLeg.position.y = -0.4;
-            leftLeg.add(leftUpperLeg);
-            const leftLowerLeg = new THREE.Mesh(lowerLegGeom, mat);
-            leftLowerLeg.position.y = -1.2;
-            leftLeg.add(leftLowerLeg);
-            leftLeg.position.set(-0.18, 0.8, 0);
-            mannequin.add(leftLeg);
-
-            const rightLeg = new THREE.Group();
-            const rightUpperLeg = new THREE.Mesh(upperLegGeom.clone(), mat);
-            rightUpperLeg.position.y = -0.4;
-            rightLeg.add(rightUpperLeg);
-            const rightLowerLeg = new THREE.Mesh(lowerLegGeom.clone(), mat);
-            rightLowerLeg.position.y = -1.2;
-            rightLeg.add(rightLowerLeg);
-            rightLeg.position.set(0.18, 0.8, 0);
-            mannequin.add(rightLeg);
-
-            mannequinScene.add(mannequin);
+            const loader = new THREE.GLTFLoader();
+            loader.load(
+                "https://threejs.org/examples/models/gltf/Soldier.glb",
+                (gltf) => {
+                    mannequin = gltf.scene;
+                    mannequin.traverse((child) => { if (child.isMesh) child.castShadow = true; });
+                    mannequin.scale.set(1.2, 1.2, 1.2);
+                    mannequin.position.y = 0;
+                    mannequinScene.add(mannequin);
+                },
+                undefined,
+                (error) => {
+                    console.error("Error loading mannequin model:", error);
+                    mannequin = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 1.4, 4, 8), new THREE.MeshStandardMaterial({ color: 0xdddddd }));
+                    mannequin.position.y = 1.4;
+                    mannequinScene.add(mannequin);
+                }
+            );
         }
 
         function animate() {
@@ -556,6 +511,8 @@
                 if (leftArm && rightArm) {
                     leftArm.setRotationFromQuaternion(relative);
                     rightArm.setRotationFromQuaternion(relative);
+                } else if (mannequin) {
+                    mannequin.setRotationFromQuaternion(relative);
                 }
             }
 
