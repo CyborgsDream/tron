@@ -38,6 +38,16 @@
             z-index: 0; /* Behind UI elements */
         }
 
+        #mannequinCanvas {
+            width: 300px;
+            height: 500px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 2; /* Above UI */
+        }
+
         /* UI Container */
         .ui-container {
             position: relative;
@@ -232,6 +242,7 @@
 
     <!-- Three.js Canvas -->
     <canvas id="trainingCanvas"></canvas>
+    <canvas id="mannequinCanvas"></canvas>
 
     <!-- UI Container -->
     <div class="ui-container">
@@ -269,6 +280,7 @@
     <script>
         // --- Three.js Setup ---
         let scene, camera, renderer, floorGrid, wallGrids;
+        let mannequinScene, mannequinCamera, mannequinRenderer;
         let mannequin, leftArm, rightArm;
         let calibrationQuaternion = null;
         let lastDeviceQuaternion = new THREE.Quaternion();
@@ -353,8 +365,6 @@
 
             scene.add(wallGrids);
 
-            createMannequin();
-
             // Stars removed as per request for an Earth-based environment
             // stars = new THREE.Points(...);
 
@@ -366,6 +376,23 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            if (mannequinRenderer && mannequinCamera) {
+                const mCanvas = document.getElementById('mannequinCanvas');
+                mannequinCamera.aspect = mCanvas.clientWidth / mCanvas.clientHeight;
+                mannequinCamera.updateProjectionMatrix();
+                mannequinRenderer.setSize(mCanvas.clientWidth, mCanvas.clientHeight);
+            }
+        }
+
+        function initMannequinScene() {
+            const canvas = document.getElementById('mannequinCanvas');
+            mannequinScene = new THREE.Scene();
+            mannequinCamera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
+            mannequinCamera.position.z = 2;
+            mannequinRenderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+            mannequinRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            mannequinRenderer.setPixelRatio(window.devicePixelRatio);
+            createMannequin();
         }
 
         function createMannequin() {
@@ -397,12 +424,15 @@
             rightArm.position.set(0.3, 1.5, 0);
             mannequin.add(rightArm);
 
-            scene.add(mannequin);
+            mannequinScene.add(mannequin);
         }
 
         function animate() {
             requestAnimationFrame(animate);
             renderer.render(scene, camera);
+            if (mannequinRenderer && mannequinScene && mannequinCamera) {
+                mannequinRenderer.render(mannequinScene, mannequinCamera);
+            }
         }
 
         // --- Device Orientation & Step Logic ---
@@ -588,6 +618,7 @@
         // --- Initialize on Window Load ---
         window.onload = function() {
             init3DScene();
+            initMannequinScene();
             animate(); // Start the 3D animation loop immediately
 
             // Check if permission is needed for device orientation
