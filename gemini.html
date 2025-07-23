@@ -374,6 +374,40 @@
         const stopButton = document.getElementById('stopButton');
         const permissionButton = document.getElementById('permissionButton');
 
+        // Track if orientation events are received
+        let orientationAvailable = false;
+        let fallbackControlsEnabled = false;
+
+        function enableFallbackControls() {
+            if (fallbackControlsEnabled) return;
+            fallbackControlsEnabled = true;
+            messageDisplay.textContent = 'Gyroscope not detected. Use arrow keys and SPACE.';
+            const rotateSpeed = 0.05;
+            window.addEventListener('keydown', (e) => {
+                switch (e.key) {
+                    case 'ArrowLeft':
+                        camera.rotation.y += rotateSpeed;
+                        break;
+                    case 'ArrowRight':
+                        camera.rotation.y -= rotateSpeed;
+                        break;
+                    case 'ArrowUp':
+                        camera.rotation.x += rotateSpeed;
+                        break;
+                    case 'ArrowDown':
+                        camera.rotation.x -= rotateSpeed;
+                        break;
+                    case ' ':
+                        if (trainingActive) {
+                            steps++;
+                            stepCountDisplay.textContent = `${steps}`;
+                            messageDisplay.textContent = `Step ${steps} simulated`;
+                        }
+                        break;
+                }
+            });
+        }
+
         let trainingActive = false;
         let steps = 0;
 
@@ -413,6 +447,7 @@
 
         // Function to handle device orientation data
         function handleOrientation(event) {
+            orientationAvailable = true;
             // event.alpha: Z-axis (compass heading)
             // event.beta: X-axis (front-to-back tilt, -180 to 180)
             // event.gamma: Y-axis (left-to-right tilt, -90 to 90)
@@ -547,6 +582,13 @@
             }
 
             permissionButton.addEventListener('click', requestDeviceOrientationPermission);
+
+            // If no orientation events arrive, enable fallback after 2 seconds
+            setTimeout(() => {
+                if (!orientationAvailable) {
+                    enableFallbackControls();
+                }
+            }, 2000);
 
             // Show initial welcome message in modal
             showModal('Welcome, Trainee!', 'Prepare for intensive low-impact, high-repetition training. Hold your phone firmly. The 3D grid will align with the real-world horizon. Perform quick, precise "flick" or "punch-like" movements with your phone to register **Steps**. Ensure your device orientation sensors are enabled.');
