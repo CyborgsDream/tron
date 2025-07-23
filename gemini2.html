@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TRON Android Training Protocol v5</title>
     <!-- Three.js CDN for 3D rendering -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/loaders/GLTFLoader.js"></script>
+    <!-- Updated Three.js version for better feature support -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/examples/js/loaders/GLTFLoader.js"></script>
     <!-- Google Fonts - Orbitron for sci-fi look -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -414,6 +415,7 @@
 
         function createMannequin() {
             const loader = new THREE.GLTFLoader();
+            loader.crossOrigin = 'anonymous';
             loader.load(
                 "https://threejs.org/examples/models/gltf/Soldier.glb",
                 (gltf) => {
@@ -426,7 +428,13 @@
                 undefined,
                 (error) => {
                     console.error("Error loading mannequin model:", error);
-                    mannequin = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 1.4, 4, 8), new THREE.MeshStandardMaterial({ color: 0xdddddd }));
+                    const geometry = THREE.CapsuleGeometry
+                        ? new THREE.CapsuleGeometry(0.3, 1.4, 4, 8)
+                        : new THREE.CylinderGeometry(0.3, 0.3, 1.7, 8);
+                    mannequin = new THREE.Mesh(
+                        geometry,
+                        new THREE.MeshStandardMaterial({ color: 0xdddddd })
+                    );
                     mannequin.position.y = 1.4;
                     mannequinScene.add(mannequin);
                 }
