@@ -257,17 +257,17 @@
     <!-- Heads-up display -->
     <div id="hud">
         <h1>ANDROID TRAINING PROTOCOL</h1>
+        <p id="messageDisplay">Tap START to begin your training.</p>
+    </div>
+
+    <!-- Control area -->
+    <div id="controls">
         <div class="stats-container">
             <div class="stat-item">
                 <div>STEPS</div>
                 <div id="stepCount">0</div>
             </div>
         </div>
-        <p id="messageDisplay">Tap START to begin your training.</p>
-    </div>
-
-    <!-- Control buttons -->
-    <div id="controls">
         <button id="startButton" class="btn">START TRAINING</button>
         <button id="stopButton" class="btn btn-stop" style="display: none;">STOP TRAINING</button>
         <button id="permissionButton" class="btn" style="display: none;">GRANT SENSOR PERMISSION</button>
@@ -399,42 +399,81 @@
             const canvas = document.getElementById('mannequinCanvas');
             mannequinScene = new THREE.Scene();
             mannequinCamera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
-            mannequinCamera.position.set(0, 1, 2); // Lift camera so mannequin appears centered
-            mannequinCamera.lookAt(0, 1, 0);
+            mannequinCamera.position.set(0, 1.6, 3);
+            mannequinCamera.lookAt(0, 1.2, 0);
             mannequinRenderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
             mannequinRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
             mannequinRenderer.setPixelRatio(window.devicePixelRatio);
+            mannequinScene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(0, 5, 5);
+            mannequinScene.add(dirLight);
             createMannequin();
         }
 
         function createMannequin() {
             mannequin = new THREE.Group();
-            const mat = new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true });
+            const mat = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.1, roughness: 0.7 });
 
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1, 0.2), mat);
-            torso.position.y = 1.2;
+            const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 1.2, 16), mat);
+            torso.position.y = 1.4;
             mannequin.add(torso);
+            const chest = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 16), mat);
+            chest.position.y = 2.0;
+            mannequin.add(chest);
 
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 16, 16), mat);
-            head.position.y = 1.8;
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.23, 32, 32), mat);
+            head.position.y = 2.2;
             mannequin.add(head);
 
             leftArm = new THREE.Group();
-            const armGeom = new THREE.CylinderGeometry(0.05, 0.05, 0.6);
-            const leftMesh = new THREE.Mesh(armGeom, mat);
-            leftMesh.rotation.z = Math.PI / 2;
-            leftMesh.position.x = -0.3;
-            leftArm.add(leftMesh);
-            leftArm.position.set(-0.3, 1.5, 0);
+            const upperArmGeom = new THREE.CylinderGeometry(0.07, 0.07, 0.6, 16);
+            const lowerArmGeom = new THREE.CylinderGeometry(0.06, 0.06, 0.5, 16);
+            const leftUpper = new THREE.Mesh(upperArmGeom, mat);
+            leftUpper.position.y = -0.3;
+            leftUpper.rotation.z = Math.PI / 2;
+            leftArm.add(leftUpper);
+            const leftLower = new THREE.Mesh(lowerArmGeom, mat);
+            leftLower.position.y = -0.8;
+            leftLower.rotation.z = Math.PI / 2;
+            leftArm.add(leftLower);
+            leftArm.position.set(-0.4, 1.8, 0);
             mannequin.add(leftArm);
 
             rightArm = new THREE.Group();
-            const rightMesh = new THREE.Mesh(armGeom.clone(), mat);
-            rightMesh.rotation.z = Math.PI / 2;
-            rightMesh.position.x = 0.3;
-            rightArm.add(rightMesh);
-            rightArm.position.set(0.3, 1.5, 0);
+            const rightUpper = new THREE.Mesh(upperArmGeom.clone(), mat);
+            rightUpper.position.y = -0.3;
+            rightUpper.rotation.z = Math.PI / 2;
+            rightArm.add(rightUpper);
+            const rightLower = new THREE.Mesh(lowerArmGeom.clone(), mat);
+            rightLower.position.y = -0.8;
+            rightLower.rotation.z = Math.PI / 2;
+            rightArm.add(rightLower);
+            rightArm.position.set(0.4, 1.8, 0);
             mannequin.add(rightArm);
+
+            const upperLegGeom = new THREE.CylinderGeometry(0.09, 0.09, 0.8, 16);
+            const lowerLegGeom = new THREE.CylinderGeometry(0.08, 0.08, 0.8, 16);
+
+            const leftLeg = new THREE.Group();
+            const leftUpperLeg = new THREE.Mesh(upperLegGeom, mat);
+            leftUpperLeg.position.y = -0.4;
+            leftLeg.add(leftUpperLeg);
+            const leftLowerLeg = new THREE.Mesh(lowerLegGeom, mat);
+            leftLowerLeg.position.y = -1.2;
+            leftLeg.add(leftLowerLeg);
+            leftLeg.position.set(-0.18, 0.8, 0);
+            mannequin.add(leftLeg);
+
+            const rightLeg = new THREE.Group();
+            const rightUpperLeg = new THREE.Mesh(upperLegGeom.clone(), mat);
+            rightUpperLeg.position.y = -0.4;
+            rightLeg.add(rightUpperLeg);
+            const rightLowerLeg = new THREE.Mesh(lowerLegGeom.clone(), mat);
+            rightLowerLeg.position.y = -1.2;
+            rightLeg.add(rightLowerLeg);
+            rightLeg.position.set(0.18, 0.8, 0);
+            mannequin.add(rightLeg);
 
             mannequinScene.add(mannequin);
         }
