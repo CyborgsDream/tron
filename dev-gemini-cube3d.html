@@ -105,7 +105,6 @@
     }
     window.addEventListener('load',()=>{initScene();animate();const btn=document.getElementById('permissionBtn');if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){btn.style.display='block';btn.addEventListener('click',requestPermission);}else{window.addEventListener('deviceorientation',handleOrientation);}});
   </script>
-  <script src="console-overlay.js"></script>
   <script src="retro-gui.js"></script>
 </body>
 </html>
