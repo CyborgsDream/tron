@@ -103,10 +103,16 @@
     torus.receiveShadow = true;
     scene.add(torus);
 
-    const pointLight = new THREE.PointLight(0xffffff, 1);
+    const pointLight = new THREE.PointLight(0xffffff, 2);
     pointLight.position.set(5, 5, 5);
     pointLight.castShadow = true;
     scene.add(pointLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2);
+    dirLight.position.set(-5, 5, 5);
+    dirLight.castShadow = true;
+    scene.add(dirLight);
+
     scene.add(new THREE.AmbientLight(0xffffff, 0.3));
 
     const planeGeo = new THREE.PlaneGeometry(10, 10);
@@ -119,18 +125,20 @@
 
     const loader = new THREE.FontLoader();
     loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font) => {
-      const textGeo = new THREE.TextGeometry('DEMOS', {
-        font,
-        size: 0.8,
-        height: 0.2,
-        curveSegments: 1,
-        bevelEnabled: false
+      const letters = ['D','E','M','O','S'];
+      const textMat = new THREE.MeshPhongMaterial({ color: 0x00ffff, shininess: 200, specular: 0xffffff });
+      const extrude = { depth: 0.2, bevelEnabled: false, curveSegments: 1 };
+      letters.forEach((char, idx) => {
+        const shapes = font.generateShapes(char, 0.8, 1);
+        const geom = new THREE.ExtrudeGeometry(shapes, extrude);
+        geom.computeBoundingBox();
+        const xMid = -0.5 * (geom.boundingBox.max.x - geom.boundingBox.min.x);
+        geom.translate(xMid, 0, 0);
+        const mesh = new THREE.Mesh(geom, textMat);
+        mesh.position.set(idx * 1 - 2, 0, 0);
+        mesh.castShadow = true;
+        scene.add(mesh);
       });
-      const textMat = new THREE.MeshPhongMaterial({ color: 0x00ffff, shininess: 100 });
-      const textMesh = new THREE.Mesh(textGeo, textMat);
-      textMesh.position.set(-2, 0, 0);
-      textMesh.castShadow = true;
-      scene.add(textMesh);
     });
 
     function addStar() {
