@@ -8,7 +8,7 @@
     width: '100%',
     maxHeight: '40%',
     overflowY: 'auto',
-    background: 'rgba(0,0,0,0.7)',
+    background: 'transparent',
     color: '#0f0',
     fontFamily: 'monospace',
     fontSize: '12px',
