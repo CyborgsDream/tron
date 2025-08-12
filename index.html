@@ -164,7 +164,6 @@
       .then(data => {
         const list = document.getElementById('demo-list');
         data.files.forEach(f => {
-          if (f === 'index.html') return;
           const a = document.createElement('a');
           a.href = f;
           a.textContent = f;
