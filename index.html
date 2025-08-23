@@ -77,7 +77,23 @@
   <canvas id="bg"></canvas>
   <div class="dashboard">
     <h1>TRON</h1>
-    <div id="demo-list"></div>
+    <div id="demo-list">
+      <a href="README.md">README.md</a>
+      <a href="deepseek.html">deepseek.html</a>
+      <a href="dev-claude-lines3d.html">dev-claude-lines3d.html</a>
+      <a href="gemini.html">gemini.html</a>
+      <a href="retro-gui.css">retro-gui.css</a>
+      <a href="claude.html">claude.html</a>
+      <a href="demos-torus.html">demos-torus.html</a>
+      <a href="dev-gemini-cube3d.html">dev-gemini-cube3d.html</a>
+      <a href="gemini2.html">gemini2.html</a>
+      <a href="retro-gui.js">retro-gui.js</a>
+      <a href="console-overlay.js">console-overlay.js</a>
+      <a href="demos.json">demos.json</a>
+      <a href="dev-new.html">dev-new.html</a>
+      <a href="index.html">index.html</a>
+      <a href="tron.html">tron.html</a>
+    </div>
   </div>
   <div id="version-display"></div>
 
@@ -160,37 +176,6 @@
       renderer.render(scene, camera);
     }
     animate();
-
-    const DEMO_FILES = [
-      'dev-gemini-cube3d.html',
-      'claude.html',
-      'gemini2.html',
-      'tron.html',
-      'gemini.html',
-      'index.html',
-      'dev-claude-lines3d.html',
-      'demos-torus.html',
-      'deepseek.html',
-      'dev-new.html'
-    ];
-
-    function renderList(files) {
-      const list = document.getElementById('demo-list');
-      files.forEach(f => {
-        const a = document.createElement('a');
-        a.href = f;
-        a.textContent = f;
-        list.appendChild(a);
-      });
-    }
-
-    fetch('demos.json')
-      .then(r => r.json())
-      .then(data => {
-        versionDisplay.textContent = data.version || DEFAULT_VERSION;
-        renderList(data.files || DEMO_FILES);
-      })
-      .catch(() => renderList(DEMO_FILES));
 
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
