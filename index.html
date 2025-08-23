@@ -86,7 +86,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/examples/js/loaders/FontLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/examples/js/geometries/TextGeometry.js"></script>
   <script>
-    const VERSION = 'v011';
+    const VERSION = 'v0.13';
     document.getElementById('version-display').textContent = VERSION;
 
     const scene = new THREE.Scene();
@@ -160,18 +160,32 @@
     }
     animate();
 
+    const DEMO_FILES = [
+      'demos-torus.html',
+      'gemini.html',
+      'gemini2.html',
+      'claude.html',
+      'deepseek.html',
+      'dev-gemini-cube3d.html',
+      'dev-claude-lines3d.html',
+      'dev-new.html',
+      'tron.html'
+    ];
+
+    function renderList(files) {
+      const list = document.getElementById('demo-list');
+      files.forEach(f => {
+        const a = document.createElement('a');
+        a.href = f;
+        a.textContent = f;
+        list.appendChild(a);
+      });
+    }
+
     fetch('demos.json')
       .then(r => r.json())
-      .then(data => {
-        const list = document.getElementById('demo-list');
-        data.files.forEach(f => {
-          const a = document.createElement('a');
-          a.href = f;
-          a.textContent = f;
-          list.appendChild(a);
-        });
-      })
-      .catch(console.error);
+      .then(data => renderList(data.files))
+      .catch(() => renderList(DEMO_FILES));
 
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
