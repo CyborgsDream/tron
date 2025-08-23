@@ -86,8 +86,9 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/examples/js/loaders/FontLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/examples/js/geometries/TextGeometry.js"></script>
   <script>
-    const VERSION = 'v0.13';
-    document.getElementById('version-display').textContent = VERSION;
+    const DEFAULT_VERSION = 'v0.13';
+    const versionDisplay = document.getElementById('version-display');
+    versionDisplay.textContent = DEFAULT_VERSION;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -184,7 +185,10 @@
 
     fetch('demos.json')
       .then(r => r.json())
-      .then(data => renderList(data.files))
+      .then(data => {
+        versionDisplay.textContent = data.version || DEFAULT_VERSION;
+        renderList(data.files || DEMO_FILES);
+      })
       .catch(() => renderList(DEMO_FILES));
 
     window.addEventListener('resize', () => {
