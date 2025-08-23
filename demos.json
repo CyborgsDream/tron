@@ -1,14 +1,15 @@
 {
-  "version": "v0.24",
+  "version": "v0.25",
   "files": [
-    "demos-torus.html",
-    "gemini.html",
-    "gemini2.html",
-    "claude.html",
-    "deepseek.html",
     "dev-gemini-cube3d.html",
+    "claude.html",
+    "gemini2.html",
+    "tron.html",
+    "gemini.html",
+    "index.html",
     "dev-claude-lines3d.html",
-    "dev-new.html",
-    "tron.html"
+    "demos-torus.html",
+    "deepseek.html",
+    "dev-new.html"
   ]
 }
