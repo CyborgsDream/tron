@@ -1,4 +1,5 @@
 {
+  "version": "v0.24",
   "files": [
     "demos-torus.html",
     "gemini.html",
