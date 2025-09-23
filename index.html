@@ -77,23 +77,7 @@
   <canvas id="bg"></canvas>
   <div class="dashboard">
     <h1>TRON</h1>
-    <div id="demo-list">
-      <a href="README.md">README.md</a>
-      <a href="deepseek.html">deepseek.html</a>
-      <a href="dev-claude-lines3d.html">dev-claude-lines3d.html</a>
-      <a href="gemini.html">gemini.html</a>
-      <a href="retro-gui.css">retro-gui.css</a>
-      <a href="claude.html">claude.html</a>
-      <a href="demos-torus.html">demos-torus.html</a>
-      <a href="dev-gemini-cube3d.html">dev-gemini-cube3d.html</a>
-      <a href="gemini2.html">gemini2.html</a>
-      <a href="retro-gui.js">retro-gui.js</a>
-      <a href="console-overlay.js">console-overlay.js</a>
-      <a href="demos.json">demos.json</a>
-      <a href="dev-new.html">dev-new.html</a>
-      <a href="index.html">index.html</a>
-      <a href="tron.html">tron.html</a>
-    </div>
+    <div id="demo-list" aria-live="polite"></div>
   </div>
   <div id="version-display"></div>
 
@@ -103,8 +87,69 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/examples/js/geometries/TextGeometry.js"></script>
   <script>
     const DEFAULT_VERSION = 'v0.13';
+    const FALLBACK_FILES = [
+      'claude.html',
+      'deepseek.html',
+      'demos-torus.html',
+      'dev-claude-lines3d.html',
+      'dev-gemini-cube3d.html',
+      'dev-new.html',
+      'gemini.html',
+      'gemini2.html',
+      'tron.html'
+    ];
     const versionDisplay = document.getElementById('version-display');
+    const demoListElement = document.getElementById('demo-list');
     versionDisplay.textContent = DEFAULT_VERSION;
+
+    function populateDemoList(fileNames) {
+      const htmlFiles = fileNames
+        .map(name => typeof name === 'string' ? name.trim() : '')
+        .filter(Boolean)
+        .filter(name => name.toLowerCase().endsWith('.html'))
+        .filter(name => name.toLowerCase() !== 'index.html');
+
+      const uniqueFiles = Array.from(new Set(htmlFiles)).sort((a, b) =>
+        a.localeCompare(b, undefined, { sensitivity: 'base' })
+      );
+
+      demoListElement.replaceChildren();
+
+      if (uniqueFiles.length === 0) {
+        const emptyMessage = document.createElement('p');
+        emptyMessage.textContent = 'No HTML demos available yet.';
+        demoListElement.appendChild(emptyMessage);
+        return;
+      }
+
+      uniqueFiles.forEach(file => {
+        const link = document.createElement('a');
+        link.href = file;
+        link.textContent = file;
+        demoListElement.appendChild(link);
+      });
+    }
+
+    populateDemoList(FALLBACK_FILES);
+
+    fetch('demos.json')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to load demos.json: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (Array.isArray(data.files)) {
+          populateDemoList(data.files);
+        }
+        if (typeof data.version === 'string') {
+          versionDisplay.textContent = data.version;
+        }
+      })
+      .catch(error => {
+        console.warn('Falling back to static demo list.', error);
+      });
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
