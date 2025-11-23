@@ -81,11 +81,17 @@
   </div>
   <div id="version-display"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
-  <!-- Use non-module versions so THREE.FontLoader and TextGeometry are available on the global THREE object -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/examples/js/loaders/FontLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/examples/js/geometries/TextGeometry.js"></script>
-  <script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
     const DEFAULT_VERSION = 'v0.26';
     const versionDisplay = document.getElementById('version-display');
     const demoList = document.getElementById('demo-list');
@@ -176,7 +182,7 @@
     plane.receiveShadow = true;
     scene.add(plane);
 
-    const loader = new THREE.FontLoader();
+    const loader = new FontLoader();
     loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font) => {
       const letters = ['D','E','M','O','S'];
       const textMat = new THREE.MeshPhongMaterial({ color: 0x00ffff, shininess: 200, specular: 0xffffff });
