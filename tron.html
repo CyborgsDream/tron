@@ -41,9 +41,17 @@
     const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg'), antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
-    light.position.set(0, 1, 0);
-    scene.add(light);
+    const ambientLight = new THREE.HemisphereLight(0xffffff, 0x222244, 0.8);
+    ambientLight.position.set(0, 1, 0);
+    scene.add(ambientLight);
+
+    const cyanKey = new THREE.DirectionalLight(0x00ffff, 1.2);
+    cyanKey.position.set(3, 2, 2);
+    scene.add(cyanKey);
+
+    const magentaFill = new THREE.PointLight(0xff00ff, 0.9, 10);
+    magentaFill.position.set(-3, 1, -2);
+    scene.add(magentaFill);
 
     let human;
     const loader = new GLTFLoader();
@@ -53,6 +61,7 @@
       (gltf) => {
         human = gltf.scene;
         human.rotation.y = Math.PI;
+        human.scale.setScalar(0.6);
         scene.add(human);
         animate();
       },
@@ -66,6 +75,7 @@
           geometry,
           new THREE.MeshStandardMaterial({ color: 0x00ffff, wireframe: true })
         );
+        human.scale.setScalar(0.6);
         scene.add(human);
         animate();
       }
