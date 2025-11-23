@@ -4,10 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TRON Android Training Protocol v5</title>
-    <!-- Three.js CDN for 3D rendering -->
-    <!-- Updated Three.js version for better feature support -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
     <!-- Google Fonts - Orbitron for sci-fi look -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -290,7 +294,10 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
         // --- Three.js Setup ---
         let scene, camera, renderer, floorGrid, wallGrids;
         let mannequinScene, mannequinCamera, mannequinRenderer;
@@ -414,7 +421,7 @@
         }
 
         function createMannequin() {
-            const loader = new THREE.GLTFLoader();
+            const loader = new GLTFLoader();
             loader.crossOrigin = 'anonymous';
             loader.load(
                 "https://threejs.org/examples/models/gltf/Soldier.glb",
