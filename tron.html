@@ -6,7 +6,6 @@
   <title>TRON Human Mesh Demo</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="retro-gui.css">
-  <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
   <style>
     body {
       margin: 0;
@@ -20,7 +19,16 @@
 <body>
   <canvas id="bg"></canvas>
 
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.module.js"
+      }
+    }
+  </script>
+
   <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.module.js';
     import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.153.0/examples/jsm/loaders/GLTFLoader.js';
 
     const scene = new THREE.Scene();
@@ -36,31 +44,31 @@
     light.position.set(0, 1, 0);
     scene.add(light);
 
-  let human;
-  const loader = new GLTFLoader();
-  loader.crossOrigin = 'anonymous';
-  loader.load(
-    'https://threejs.org/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb',
-    (gltf) => {
-      human = gltf.scene;
-      human.rotation.y = Math.PI;
-      scene.add(human);
-      animate();
-    },
-    undefined,
-    (error) => {
-      console.error('Failed to load human model:', error);
-      const geometry = THREE.CapsuleGeometry
-        ? new THREE.CapsuleGeometry(0.5, 1.7, 8, 16)
-        : new THREE.CylinderGeometry(0.5, 0.5, 1.7, 16);
-      human = new THREE.Mesh(
-        geometry,
-        new THREE.MeshStandardMaterial({ color: 0x00ffff, wireframe: true })
-      );
-      scene.add(human);
-      animate();
-    }
-  );
+    let human;
+    const loader = new GLTFLoader();
+    loader.crossOrigin = 'anonymous';
+    loader.load(
+      'https://threejs.org/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb',
+      (gltf) => {
+        human = gltf.scene;
+        human.rotation.y = Math.PI;
+        scene.add(human);
+        animate();
+      },
+      undefined,
+      (error) => {
+        console.error('Failed to load human model:', error);
+        const geometry = THREE.CapsuleGeometry
+          ? new THREE.CapsuleGeometry(0.5, 1.7, 8, 16)
+          : new THREE.CylinderGeometry(0.5, 0.5, 1.7, 16);
+        human = new THREE.Mesh(
+          geometry,
+          new THREE.MeshStandardMaterial({ color: 0x00ffff, wireframe: true })
+        );
+        scene.add(human);
+        animate();
+      }
+    );
 
     function animate() {
       requestAnimationFrame(animate);
