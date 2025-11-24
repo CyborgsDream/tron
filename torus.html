@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Torus</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #111;
+      color: #0ff;
+      font-family: 'Orbitron', sans-serif;
+    }
+    #bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    .dashboard {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 1.5rem 2rem;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+      box-shadow: 0 0 10px #0ff;
+      text-align: center;
+    }
+    .dashboard h1 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+    .dashboard p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #bff;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg"></canvas>
+  <div class="dashboard">
+    <h1>Torus Demo</h1>
+    <p>Spinning neon torus inspired by the TRON menu background.</p>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg'), antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+
+    camera.position.z = 5;
+
+    const geometry = new THREE.TorusGeometry(1, 0.3, 32, 120);
+    const positionAttribute = geometry.attributes.position;
+    const colors = new Float32Array(positionAttribute.count * 3);
+    const color = new THREE.Color();
+
+    for (let i = 0; i < positionAttribute.count; i++) {
+      const x = positionAttribute.getX(i);
+      const y = positionAttribute.getY(i);
+      const z = positionAttribute.getZ(i);
+      const angle = Math.atan2(y, x);
+      const normalizedAngle = (angle + Math.PI) / (Math.PI * 2);
+      const lightness = 0.45 + 0.25 * Math.sin((z + 0.3) * 3);
+      color.setHSL(normalizedAngle, 0.85, lightness);
+      colors[i * 3] = color.r;
+      colors[i * 3 + 1] = color.g;
+      colors[i * 3 + 2] = color.b;
+    }
+
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    const material = new THREE.MeshPhongMaterial({ vertexColors: true, shininess: 200, specular: 0xffffff });
+    const torus = new THREE.Mesh(geometry, material);
+    torus.castShadow = true;
+    torus.receiveShadow = true;
+    scene.add(torus);
+
+    const pointLight = new THREE.PointLight(0xffffff, 2);
+    pointLight.position.set(5, 5, 5);
+    pointLight.castShadow = true;
+    scene.add(pointLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2);
+    dirLight.position.set(-5, 5, 5);
+    dirLight.castShadow = true;
+    scene.add(dirLight);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+
+    const planeGeo = new THREE.PlaneGeometry(10, 10);
+    const planeMat = new THREE.ShadowMaterial({ opacity: 0.3 });
+    const plane = new THREE.Mesh(planeGeo, planeMat);
+    plane.rotation.x = -Math.PI / 2;
+    plane.position.y = -1.5;
+    plane.receiveShadow = true;
+    scene.add(plane);
+
+    const loader = new FontLoader();
+    loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', (font) => {
+      const letters = ['T','O','R','U','S'];
+      const textMat = new THREE.MeshPhongMaterial({ color: 0x00ffff, shininess: 200, specular: 0xffffff });
+      const extrude = { depth: 0.2, bevelEnabled: false, curveSegments: 1 };
+      letters.forEach((char, idx) => {
+        const shapes = font.generateShapes(char, 0.8, 1);
+        const geom = new THREE.ExtrudeGeometry(shapes, extrude);
+        geom.computeBoundingBox();
+        const xMid = -0.5 * (geom.boundingBox.max.x - geom.boundingBox.min.x);
+        geom.translate(xMid, 0, 0);
+        const mesh = new THREE.Mesh(geom, textMat);
+        mesh.position.set(idx * 1 - 2, 0, 0);
+        mesh.castShadow = true;
+        scene.add(mesh);
+      });
+    });
+
+    function addStar() {
+      const geo = new THREE.SphereGeometry(0.02, 24, 24);
+      const mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const star = new THREE.Mesh(geo, mat);
+      const [x, y, z] = Array.from({ length: 3 }, () => THREE.MathUtils.randFloatSpread(50));
+      star.position.set(x, y, z);
+      scene.add(star);
+    }
+
+    Array(200).fill().forEach(addStar);
+
+    function animate() {
+      requestAnimationFrame(animate);
+      torus.rotation.x += 0.005;
+      torus.rotation.y += 0.01;
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
