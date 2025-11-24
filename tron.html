@@ -33,7 +33,7 @@
     import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a1b3d);
+    scene.background = new THREE.Color(0x08142e);
 
     const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 1.6, 3);
@@ -41,17 +41,27 @@
     const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg'), antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    const ambientLight = new THREE.HemisphereLight(0xffffff, 0x222244, 0.8);
+    const ambientLight = new THREE.HemisphereLight(0xb8d7ff, 0x1c1a3a, 0.85);
     ambientLight.position.set(0, 1, 0);
     scene.add(ambientLight);
 
-    const cyanKey = new THREE.DirectionalLight(0x00ffff, 1.2);
+    const cyanKey = new THREE.DirectionalLight(0x4de9ff, 1.1);
     cyanKey.position.set(3, 2, 2);
     scene.add(cyanKey);
 
-    const magentaFill = new THREE.PointLight(0xff00ff, 0.9, 10);
+    const magentaFill = new THREE.PointLight(0xff4de7, 0.9, 10);
     magentaFill.position.set(-3, 1, -2);
     scene.add(magentaFill);
+
+    const limeRim = new THREE.SpotLight(0x7cff7c, 0.65, 12, Math.PI / 6, 0.4, 0.9);
+    limeRim.position.set(0, 2.5, -2.5);
+    limeRim.target.position.set(0, 1.2, 0);
+    scene.add(limeRim);
+    scene.add(limeRim.target);
+
+    const rainbowPulse = new THREE.PointLight(0xffffff, 0.55, 8);
+    rainbowPulse.position.set(0, 1.8, 1.5);
+    scene.add(rainbowPulse);
 
     let human;
     const loader = new GLTFLoader();
@@ -61,7 +71,8 @@
       (gltf) => {
         human = gltf.scene;
         human.rotation.y = Math.PI;
-        human.scale.setScalar(0.6);
+        human.scale.setScalar(0.38);
+        applyNeonMaterial(human);
         scene.add(human);
         animate();
       },
@@ -73,16 +84,39 @@
           : new THREE.CylinderGeometry(0.5, 0.5, 1.7, 16);
         human = new THREE.Mesh(
           geometry,
-          new THREE.MeshStandardMaterial({ color: 0x00ffff, wireframe: true })
+          new THREE.MeshStandardMaterial({ color: 0x00ffff, emissive: 0x0a1b3d, wireframe: true })
         );
-        human.scale.setScalar(0.6);
+        human.scale.setScalar(0.38);
         scene.add(human);
         animate();
       }
     );
 
+    function applyNeonMaterial(model) {
+      const palette = [0x4de9ff, 0xff4de7, 0x7cff7c, 0xf8d66d];
+      let index = 0;
+      model.traverse((child) => {
+        if (child.isMesh) {
+          const material = new THREE.MeshStandardMaterial({
+            color: palette[index % palette.length],
+            emissive: 0x0c1027,
+            metalness: 0.25,
+            roughness: 0.35,
+          });
+          child.material = material;
+          index += 1;
+        }
+      });
+    }
+
+    const rainbowColor = new THREE.Color();
+
     function animate() {
       requestAnimationFrame(animate);
+      const time = performance.now() * 0.0005;
+      rainbowColor.setHSL((time * 0.1) % 1, 0.9, 0.55);
+      rainbowPulse.color.copy(rainbowColor);
+      limeRim.color.copy(rainbowColor);
       if (human) human.rotation.y += 0.005;
       renderer.render(scene, camera);
     }
